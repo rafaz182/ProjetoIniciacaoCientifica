@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
 
 public class ProjetoGUI extends JFrame {
 	
@@ -107,6 +108,9 @@ public class ProjetoGUI extends JFrame {
 			fcRoot = new JFileChooser();
 			fcRoot.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			fcRoot.setMultiSelectionEnabled(true);
+			fcRoot.addChoosableFileFilter(new ImageFilter());
+            fcRoot.setAcceptAllFileFilterUsed(false);			
+			
 		}
 		
 		
@@ -117,7 +121,7 @@ public class ProjetoGUI extends JFrame {
 			if(e.getSource() == btnSelec){
 				int returnVal = fcRoot.showOpenDialog(this); // parametro: posicao de onde abrir o FileChooser
 				
-				if(returnVal == JFileChooser.APPROVE_OPTION){
+				if((returnVal == JFileChooser.APPROVE_OPTION)){
 					arquivos = fcRoot.getSelectedFiles();
 					tfdRaiz.setText(fcRoot.getCurrentDirectory().toString());
 					
@@ -129,6 +133,37 @@ public class ProjetoGUI extends JFrame {
 			}
 			
 		}
+		
+	}
+	
+	private class ImageFilter extends FileFilter {
+
+		@Override
+		public boolean accept(File f) {
+			// Accept all directories and all gif, jpg, tiff, or png files.
+			if (f.isDirectory()) {
+				return true;
+			}
+
+			String extension = Utils.getExtension(f);
+			if (extension != null) {
+				if (extension.equals(Utils.tiff) || extension.equals(Utils.tif) || extension.equals(Utils.gif)
+						|| extension.equals(Utils.jpeg) || extension.equals(Utils.jpg) || extension.equals(Utils.png)) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+
+			return false;
+		}
+
+		@Override
+		public String getDescription() {
+			// TODO Auto-generated method stub
+			return ".gif .jpeg .jpg .png .tif .tiff";
+		}
+
 	}
 
 }
