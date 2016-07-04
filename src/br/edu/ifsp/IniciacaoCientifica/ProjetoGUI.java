@@ -6,6 +6,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -62,10 +63,11 @@ public class ProjetoGUI extends JFrame {
 			btnSelec.addActionListener(this);
 			
 			listModel = new DefaultListModel<File>();
-			lstPathImagens = new JList<File>(listModel);
+			lstPathImagens = new JList<File>(listModel); // só exibe os elememtos de: listModel
 			scrollList = new JScrollPane(lstPathImagens);	
 			
 			btnProcessa = new JButton("Processar");
+			btnProcessa.addActionListener(this);
 			
 			btnProcessTodos = new JButton("Todos");
 			
@@ -121,7 +123,7 @@ public class ProjetoGUI extends JFrame {
 			if(e.getSource() == btnSelec){
 				int returnVal = fcRoot.showOpenDialog(this); // parametro: posicao de onde abrir o FileChooser
 				
-				if((returnVal == JFileChooser.APPROVE_OPTION)){
+				if(returnVal == JFileChooser.APPROVE_OPTION){
 					arquivos = fcRoot.getSelectedFiles();
 					tfdRaiz.setText(fcRoot.getCurrentDirectory().toString());
 					
@@ -130,6 +132,16 @@ public class ProjetoGUI extends JFrame {
 					
 					lstPathImagens.setSelectedIndex(0);															
 				}
+			}
+			
+			if(e.getSource() == btnProcessa){				
+				ImageFrame janelaImg;
+				try {
+					janelaImg = new ImageFrame(listModel.getElementAt(lstPathImagens.getSelectedIndex()));
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}			
 			}
 			
 		}
