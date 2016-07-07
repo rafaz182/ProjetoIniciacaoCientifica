@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -75,6 +77,16 @@ public class GImage {
     	image = rimage;
     }
     	
+    public int getIntRGB(Color c, int x, int y){
+    	int r = c.getRed();
+    	int g = c.getGreen();
+    	int b = c.getBlue();
+    	int rgb;
+    	Color cor = new Color(image.getRGB(x,y));
+    	rgb = ((cor.getRed()*r) + (cor.getGreen()*g) + (cor.getBlue()*b)) / (r+g+b);
+    	return rgb;
+    }
+    
 	public int getGray(int x, int y){
     	Color c;
     	int corMediaPonto;    	
@@ -92,6 +104,16 @@ public class GImage {
     		image.setRGB(x, y, 0);
     }
 
+    public void Conv(Kernel k){
+    	BufferedImage rimage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+    	
+    	ConvolveOp COp = new ConvolveOp(k);
+    	
+    	COp.filter(image, rimage);
+    	
+    	image = rimage;    	
+    }
+    
     public static double[] minQuadradoPolinomial(double[] x, double[] y, int order){
     	double[][] X = new double[x.length][order + 1];
 		

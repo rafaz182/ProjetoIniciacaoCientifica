@@ -70,6 +70,7 @@ public class ProjetoGUI extends JFrame {
 			btnProcessa.addActionListener(this);
 			
 			btnProcessTodos = new JButton("Todos");
+			btnProcessTodos.addActionListener(this);
 			
 			setBounds(10, 10, ProjetoGUI.HEIGHT-10, ProjetoGUI.WIDTH-10);
 			
@@ -107,7 +108,7 @@ public class ProjetoGUI extends JFrame {
 			
 			setLayout(gl_Princ);
 			
-			fcRoot = new JFileChooser();
+			fcRoot = new JFileChooser(new File(".").getAbsolutePath());
 			fcRoot.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			fcRoot.setMultiSelectionEnabled(true);
 			fcRoot.addChoosableFileFilter(new ImageFilter());
@@ -142,6 +143,20 @@ public class ProjetoGUI extends JFrame {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}			
+			}
+			
+			if(e.getSource() == btnProcessTodos){
+				lstPathImagens.setSelectedIndex(0);
+				ImageFrame janelaImg;
+				for(int i = 0; i < listModel.getSize(); i++){
+					lstPathImagens.setSelectedIndex(i);
+					try {
+						janelaImg = new ImageFrame(listModel.getElementAt(lstPathImagens.getSelectedIndex()));
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}		
+				}
 			}
 			
 		}
