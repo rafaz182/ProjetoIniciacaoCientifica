@@ -27,9 +27,10 @@ public class ImageFrame extends JFrame{
 
 	public ImageFrame(File img) throws IOException{
 		setLayout(new BorderLayout());	
+		setTitle(img.getName());
 				
 		image = new GImage(ImageIO.read(img));
-		
+				
 		processaImg();
 		
 		ImageIcon icon = new ImageIcon(image.getImagem());
@@ -38,8 +39,7 @@ public class ImageFrame extends JFrame{
 		
 		add(new JScrollPane(imgLabel), BorderLayout.CENTER);
 				
-		setSize(image.getImagem().getWidth()+30, image.getImagem().getHeight()+30);
-		setTitle(img.getName());
+		setSize(image.getImagem().getWidth()+30, image.getImagem().getHeight()+30);		
 		setVisible(true);
 		setResizable(false);		
 	}
@@ -47,7 +47,10 @@ public class ImageFrame extends JFrame{
 	public void processaImg(){
 		long tempoInicial1 = System.currentTimeMillis();
 		
-		double r = 1024./Math.min(image.getImagem().getHeight(), image.getImagem().getWidth());	 // define razão
+		System.out.println("_________INICIO DO PROCESSAMENTO___________");
+		System.out.println("arquivo: "+ this.getTitle());
+		
+		double r = 400./Math.min(image.getImagem().getHeight(), image.getImagem().getWidth());	 // define razão
 		
 		if(r != 1.)
 			image.reduz(r);
@@ -55,27 +58,30 @@ public class ImageFrame extends JFrame{
 		GImage imgConvH = image.copia(); // Convolucionar para encontrar linhas horizontais
 		
 		imgConvH.Conv(leKernel(new File("kernels\\k5x5-H.txt")));
-		
-		//image = imgConvH;
-		
-		//imgConvH.getImagem().getWidth()/2, imgConvH.getImagem().getHeight()/2,
-		
+				
 		int ymaior = getMaxY(imgConvH, imgConvH.getImagem().getWidth()/2, imgConvH.getImagem().getHeight()/2,
-				imgConvH.getImagem().getWidth()/2, imgConvH.getImagem().getHeight()/2);
+				(imgConvH.getImagem().getWidth()/2) - 2, (imgConvH.getImagem().getHeight()/2) - 2);
 		
-		double teta1 = getTetaX(imgConvH, imgConvH.getImagem().getWidth()/2, ymaior, 70, 6);
-		
+		double teta1 = getTetaX(imgConvH, imgConvH.getImagem().getWidth()/2, ymaior, 70, 6);		
+				
 		GImage imgConvV = image.copia();
-		
-		System.out.print(teta1);
 		
 		if (teta1 != 0.0) 
 			imgConvV.roda(Math.toRadians(teta1), imgConvV.getImagem().getHeight()/2, ymaior);
 		
-		imgConvV.Conv(leKernel(new File("kernels\\k5x5-V.txt")));
+		imgConvV.Conv(leKernel(new File("kernels\\k5x5-V.txt")));		
+			
+		int xmaior = getMaxX(imgConvV, imgConvV.getImagem().getWidth()/2, imgConvV.getImagem().getHeight()/2,
+				(imgConvV.getImagem().getWidth()/2) - 2, (imgConvV.getImagem().getHeight()/2) - 2);		
+		
+		double teta2 = getTetaY(imgConvV, xmaior, imgConvV.getImagem().getHeight()/2, 6, 70);
+		
+		if (teta1 != 0.0) 
+			image.roda(Math.toRadians(teta1), Math.toRadians(teta2), xmaior, ymaior);
 		
 		image = imgConvV;
-				
+		
+		System.out.println("_________FIM DO PROCESSAMENTO___________\n\n");		
 	}
 	
 	int getMaxY(GImage img, int x, int y, int dx, int dy){
@@ -95,7 +101,7 @@ public class ImageFrame extends JFrame{
 		for(int i = 0; i < ymin; i++)
 			histV[i] = 0;
 		
-		for(int i = ymax; i < img.getImagem().getHeight(); i++)
+		for(int i = ymax; i < img.getImagem().getHeight()-1; i++)
 			histV[i] = 0;			
 		
 		int r = Histograma.getPosMax(histV);
@@ -103,7 +109,29 @@ public class ImageFrame extends JFrame{
 		return r; // retorna a posicao do maior valor armazenado no vetor histV[]
 	}
 	
-	double getTetaX(GImage I, int x, int y, int dx, int dy){
+	int getMaxX(GImage img, int x, int y, int dx, int dy){
+		int xmin, xmax, ymin, ymax;
+		
+		xmin = Math.max(0, x-dx);
+		xmax = Math.min(img.getImagem().getWidth(), x+dx);
+		ymin = Math.max(0, y-dy);
+		ymax = Math.min(img.getImagem().getHeight(), y+dy);
+		
+		int[] histH = Histograma.getHistX(img, ymin, ymax);
+		
+		for(int i = 0; i < xmin; i++)
+			histH[i] = 0;
+		
+		for(int i = xmax; i < img.getImagem().getWidth()-1; i++)
+			histH[i] = 0;
+		
+		int r = Histograma.getPosMax(histH);
+		
+		return r;
+	}
+	
+	double getTetaX(GImage img, int x, int y, int dx, int dy){
+		//System.out.println(x+";"+y+";"+dx+";"+dy);
 		double constantes[];
 		double teta = 0;
 		int N, disc;	
@@ -121,7 +149,7 @@ public class ImageFrame extends JFrame{
 		
 		for(int i = x-dx; i < (x+dx); i++){
 			for(int j = y-dy; j < (y+dy); j++){
-				cor = I.getIntRGB(Color.WHITE, i, j);
+				cor = img.getIntRGB(Color.WHITE, i, j);
 				if(cor > disc){
 					NX[k] = i;
 					NY[k] = j;
@@ -145,7 +173,8 @@ public class ImageFrame extends JFrame{
 		return -teta;
 	}
 	
-	double getTetaY(GImage I,int x, int y, int dx, int dy){
+	double getTetaY(GImage img, int x, int y, int dx, int dy){
+		
 		double constantes[];
 		double teta = 0;
 		int N, disc;
@@ -160,27 +189,36 @@ public class ImageFrame extends JFrame{
 		
 		disc = 25;
 		
-		for(int i = x-dx; i < (x+dx); i++)
+		for(int i = x-dx; i < (x+dx); i++){
+			// eixo abscissa
 			for(int j = y-dy; j < (y+dy); j++){
-				cor = I.getIntRGB(Color.WHITE, i, j);
+				// eixo ordenada
+				cor = img.getIntRGB(Color.WHITE, i, j);
+				//System.out.println(cor);
 				if(cor > disc){
-					NY[k] = i;
+					NY[k] = i; // NY recebe valor da abscissa
 					NX[k] = j;					
 					k++;	
 				}
+			}
 		}
 		
+		//System.out.println(k);
 		double [] X = new double [k];
-		double [] Y = new double [k];		
+		double [] Y = new double [k];	
+		
 		for(int i = 0; i < k; i++){
 			X[i] = NX[i];
 			Y[i] = NY[i];
+			//System.out.println("("+NX[i]+";"+NY[i]+")");
 		}	
+		
+
 		
 		constantes= GImage.minQuadradoPolinomial(X,Y,1);
 		
 		teta = Math.toDegrees(Math.atan(constantes[1]));
-		System.out.println("a + bx e teta " +constantes[0]+"  "+constantes[1]+ " "+(-teta)+ " "+Math.toDegrees(constantes[1]) );
+		//System.out.println("a + bx e teta " +constantes[0]+"  "+constantes[1]+ " "+(-teta)+ " "+Math.toDegrees(constantes[1]) );
 		return -teta;
 	}
 	
