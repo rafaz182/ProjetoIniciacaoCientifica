@@ -16,8 +16,8 @@ public abstract class Histograma {
     	
     	if (ini < 0)
     		ini = 0;
-    	if (fim > imagem.getImagem().getHeight()) 
-    		fim = imagem.getImagem().getHeight();
+    	if (fim > imagem.height) 
+    		fim = imagem.height;
     	
     	int r, g, b;
     	r = c.getRed();
@@ -32,6 +32,8 @@ public abstract class Histograma {
         	}
     		x[i] /= (fim-ini); // média das cores da coluna i
         }
+    	
+    	System.out.println("Criando histograma em X, de ("+0+", "+ini+") até ("+imagem.width+", "+fim+")");
     	
     	return x; 
     }
@@ -54,10 +56,10 @@ public abstract class Histograma {
     	if (ini < 0) 
     		ini = 0;
     	
-    	if (fim > imagem.getImagem().getWidth()) 
-    		fim = imagem.getImagem().getWidth();
+    	if (fim > imagem.width) 
+    		fim = imagem.width;
     	
-    	for(int j = 0; j < imagem.getImagem().getHeight(); j++){
+    	for(int j = 0; j < imagem.height; j++){
     		//j = eixo ordenada
     		y[j] = 0;
     		for(int i = ini; i < fim; i++){
@@ -67,6 +69,9 @@ public abstract class Histograma {
         	}
     		y[j] /= (fim-ini); // média das cores da linha j
     	}
+    	
+    	System.out.println("Criando histograma em Y, de ("+ini+", "+0+") até ("+fim+", "+imagem.height+")");
+    	
     	return y; 
     }
 
@@ -89,7 +94,7 @@ public abstract class Histograma {
     
     public static int getPosMax(double v[], int ini, int fim){
         double max = 0.0; // recebe o maior valor armazenado no vetor v[]
-        int imax = 0; // recebe a posicao do vetor v[] com maior valor
+        int iMaior = 0; // recebe a posicao do vetor v[] com maior valor
         
         if (ini < 0)
         	ini = 0;
@@ -100,10 +105,10 @@ public abstract class Histograma {
         for(int i = ini; i < fim; i++)
         	if(v[i] > max){
         		max = v[i]; 
-        		imax = i;
+        		iMaior = i;
         	}
         
-    	return imax; // retorna a posicao do maior valor armazenado no vetor v[]
+    	return iMaior; // retorna a posicao do maior valor armazenado no vetor v[]
     }    
     
 

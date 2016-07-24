@@ -13,10 +13,13 @@ import org.apache.commons.math3.linear.RealMatrix;
 public class GImage {
 	
 	private BufferedImage image;
+	public int width, height;
 	private int xRight, xLeft, yTop, yBottom; // coordenada dos limites do documento
 	
 	public GImage(BufferedImage img){
 		image = img;
+		width = image.getWidth();
+    	height = image.getHeight();
 	}
 	
 	public BufferedImage getImagem() {
@@ -39,6 +42,9 @@ public class GImage {
     	AffineTransformOp afo = new AffineTransformOp(at, tipo);   
     	rimage = afo.filter(image, rimage);	
     	image = rimage;    	
+    	
+    	width = image.getWidth();
+    	height = image.getHeight();
     }
 
     public void roda(double alfa){
@@ -57,6 +63,9 @@ public class GImage {
      	afo.filter(image, rimage);
      	
     	image = rimage;     
+    	
+    	width = image.getWidth();
+    	height = image.getHeight();
     }
     
     public void roda(double alfa, double alfa2, double x, double y){
@@ -75,15 +84,25 @@ public class GImage {
     	afo.filter(image, rimage);
     	
     	image = rimage;
+    	
+    	width = image.getWidth();
+    	height = image.getHeight();
     }
     	
+    public int getIntRGB(int x, int y){
+    	
+    	return getIntRGB(Color.WHITE, x, y);
+    }
+    
     public int getIntRGB(Color c, int x, int y){
     	int r = c.getRed();
     	int g = c.getGreen();
     	int b = c.getBlue();
     	int rgb;
+    	
     	Color cor = new Color(image.getRGB(x,y));
     	rgb = ((cor.getRed()*r) + (cor.getGreen()*g) + (cor.getBlue()*b)) / (r+g+b);
+    	
     	return rgb;
     }
     
@@ -104,17 +123,74 @@ public class GImage {
     		image.setRGB(x, y, 0);
     }
 
-    public void Conv(Kernel k){
+    public void conv(Kernel k){
     	BufferedImage rimage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
     	
     	ConvolveOp COp = new ConvolveOp(k);
     	
     	COp.filter(image, rimage);
     	
-    	image = rimage;    	
+    	image = rimage;   
+    	
+    	width = image.getWidth();
+    	height = image.getHeight();
+    }
+    
+    public void pintaQuadrado(double x, double y, double l, double h){
+    	pintaQuadrado((int) x, (int) y, (int) l, (int) h);
+    }
+    
+    public void pintaQuadrado(int x, int y, int l, int h){
+    	//System.out.println(x+","+y+","+l+","+h);
+    	
+    	int c = 0x0000fff0;
+    	
+    	int xmin, xmax, ymin, ymax;
+		
+		xmin = Math.max(0, x);
+		xmax = Math.min(width-2, x+l);
+		ymin = Math.max(0, y);
+		ymax = Math.min(height-2, y+h);
+    	    	
+    	for(int i = xmin; i < xmax; i++){
+    	  image.setRGB(i, ymin, c);
+    	  image.setRGB(i, ymax, c);
+    	}
+    	
+    	for(int j = ymin; j < ymax; j++){
+      	  image.setRGB(xmin, j, c);
+      	  image.setRGB(xmax, j, c); 
+      	}    	
+    	
+    }
+
+    public void pintaLinhaY(int y){
+    	pintaLinhaY(1, y, width-2);
+    }
+    
+    public void pintaLinhaY(int x, int y, int l){
+    	//Varia a largura (X) linha VERMELHA
+    	int c = 0xFFFF0000;
+    	
+    	for(int i = x; i < x+l; i++)
+    		image.setRGB(i, y, c);
+    }
+    
+    public void pintaLinhaX(int x){
+    	pintaLinhaX(x, 1, height-2);
+    }
+    
+    public void pintaLinhaX(int x, int y, int h){
+    	//Varia a altura (Y) linha VERDE
+    	
+    	int c = 0x00FF00;
+    	
+    	for(int i = y; i < y+h; i++)
+    		image.setRGB(x, i, c);
     }
     
     public static double[] minQuadradoPolinomial(double[] x, double[] y, int order){
+    	System.out.println("Calculando o Qui-Quadrado de ordem " +(order+1));
     	double[][] X = new double[x.length][order + 1];
 		
 		for(int i = 0; i < x.length; i++){			
@@ -132,6 +208,11 @@ public class GImage {
 		RealMatrix A = MXTXI.multiply(MXTY);
 
 		double[] a = A.getColumn(0);
+		System.out.print("Foram encontrado as constantes ");
+		for(double cons : a)
+			System.out.print(cons+", ");
+		
+		System.out.println("");
 
 		return a;
     }
