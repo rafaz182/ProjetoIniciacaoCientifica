@@ -63,11 +63,7 @@ public class ImageFrame extends JFrame{
 		if(image.width > image.height)
 			alinhaPaisagem(image);
 		else
-			alinhaRetrato(image);
-		
-		//test.conv(leKernel(new File("kernels\\bordaDireita.txt")));
-		
-		//image = test;
+			alinhaRetrato(image);	
 		
 		long tempoFinal1 = System.currentTimeMillis(); 
 		System.out.println("tempo total = " + ((tempoFinal1 - tempoInicial1)/100) + " segundos");
@@ -107,7 +103,7 @@ public class ImageFrame extends JFrame{
 			imgConvV.roda(Math.toRadians(teta1), imgConvV.height/2, ymaior);
 		else{
 			imgConvH = img.copia(); 
-			imgConvH.conv(leKernel(new File("kernels\bordaTop.txt")));
+			imgConvH.conv(leKernel(new File("kernels\\bordaTop.txt")));
 			ymaior = getMaxY(imgConvH, xmin, ymin, xmax, ymax);	
 			teta1 = getTetaX(imgConvH, imgConvH.width/2, ymaior, (int)(imgConvH.width*PORCENTAGEM_MAIOR_H), (int)(imgConvH.height*PORCENTAGEM_MENOR_H));		
 			if (teta1 != 0.0) 
@@ -194,7 +190,7 @@ public class ImageFrame extends JFrame{
 		
 		xmaior = getMaxX(imgConvV, xmin, ymin, xmax, ymax);		
 		
-		double teta2 = getTetaY(imgConvV, xmaior, imgConvV.height/2, (int)(imgConvV.width*PORCENTAGEM_MENOR_V), (int)(imgConvV.height*PORCENTAGEM_MAIOR_V));
+		double teta2 = getTetaY(imgConvV, xmaior, imgConvV.height/2, (int)(imgConvV.width*PORCENTAGEM_MENOR_V), (int)(imgConvV.height*PORCENTAGEM_MAIOR_V));		
 		
 		if (teta1 != 0.0) 
 			img.roda(Math.toRadians(teta1), Math.toRadians(teta2), xmaior, ymaior);
@@ -321,10 +317,12 @@ public class ImageFrame extends JFrame{
 					k++;	
 				}
 			}
+		}		
+			
+		if(k == 0){
+			System.out.println("Nenhum valor a cima de "+disc+" foi encontrado\n");
+			return 0.0;		
 		}
-		
-		if(k == 0)
-			return 0.0;
 		
 		System.out.println("Foram encontrados "+k+" valores acima de "+disc);
 		
@@ -383,10 +381,12 @@ public class ImageFrame extends JFrame{
 					k++;	
 				}
 			}
-		}
+		}		
 		
-		if(k == 0)
+		if(k == 0){
+			System.out.println("Nenhum valor a cima de "+disc+" foi encontrado\n");
 			return 0.0;
+		}
 		
 		System.out.println("Foram encontrados "+k+" valores acima de "+disc);
 		

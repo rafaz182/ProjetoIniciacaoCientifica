@@ -54,8 +54,11 @@ public class GImage {
     public void roda(double alfa, double x, double y){
     	// o angulo 'alfa' é passado em radianos
     	
+    	System.out.println("Transladando o ponto ("+(int)x+"; "+(int)y+") para a origem");
     	AffineTransform at = new AffineTransform(); 
        	at.rotate(alfa, x, y);
+       	System.out.print("Rotacionando a imagem em "+Math.toDegrees(alfa)+ " graus\n");
+       	System.out.println("Transladando o ponto (0, 0) para a ("+(int)x+"; "+(int)y+")\n");
        	
        	BufferedImage rimage = new BufferedImage(this.image.getWidth(), this.image.getHeight(), BufferedImage.TYPE_3BYTE_BGR); 
        	
@@ -124,6 +127,7 @@ public class GImage {
     }
 
     public void conv(Kernel k){
+    	System.out.println("Convolucionando a imagem \n");
     	BufferedImage rimage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
     	
     	ConvolveOp COp = new ConvolveOp(k);
@@ -208,7 +212,7 @@ public class GImage {
 		RealMatrix A = MXTXI.multiply(MXTY);
 
 		double[] a = A.getColumn(0);
-		System.out.print("Foram encontrado as constantes ");
+		System.out.print("Foram encontrados as constantes ");
 		for(double cons : a)
 			System.out.print(cons+", ");
 		
