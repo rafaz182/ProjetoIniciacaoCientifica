@@ -53,17 +53,21 @@ public class ImageFrame extends JFrame{
 		System.out.println("_________INICIO DO PROCESSAMENTO["+counter+"]___________");
 		System.out.println("arquivo: "+ this.getTitle()+"\n");
 		
-		double r = 1024./Math.min(image.height, image.width);	 // define razão
+		double r = 400./Math.min(image.height, image.width);	 // define razão
 		
 		if(r != 1.)
 			image.reduz(r);
 		
-		System.out.println("Largura:"+image.width+", Altura:"+image.height+"\n");			
+		System.out.println("Largura:"+image.width+", Altura:"+image.height+"\n");	
 		
-		if(image.width > image.height)
+		image.conv(leKernel(new File("kernels\\bordaTop.txt")));
+		
+		/*if(image.width > image.height)
 			alinhaPaisagem(image);
 		else
-			alinhaRetrato(image);	
+			alinhaRetrato(image);	*/
+		
+		
 		
 		long tempoFinal1 = System.currentTimeMillis(); 
 		System.out.println("tempo total = " + ((tempoFinal1 - tempoInicial1)/100) + " segundos");
@@ -91,6 +95,7 @@ public class ImageFrame extends JFrame{
 		GImage imgConvH = img.copia(); 		
 		imgConvH.conv(leKernel(new File("kernels\\bordaBottom.txt")));
 		
+		//img = imgConvH;		
 		int ymaior;
 		
 		ymaior = getMaxY(imgConvH, xmin, ymin, xmax, ymax);	
@@ -160,9 +165,9 @@ public class ImageFrame extends JFrame{
 		ymax = img.height*(17./19.);
 		
 		GImage imgConvH = img.copia(); 
-		
+				
 		imgConvH.conv(leKernel(new File("kernels\\bordaBottom.txt")));
-		
+		//img = imgConvH;
 		int ymaior;
 		
 		ymaior = getMaxY(imgConvH, xmin, ymin, xmax, ymax);		
