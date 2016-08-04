@@ -53,11 +53,15 @@ public class GImage {
     
     public void roda(double alfa, double x, double y){
     	// o angulo 'alfa' é passado em radianos
+    	// negativo para girar no sentido anti-horario
     	
-    	System.out.println("Transladando o ponto ("+(int)x+"; "+(int)y+") para a origem");
+    	
     	AffineTransform at = new AffineTransform(); 
-       	at.rotate(alfa, x, y);
-       	System.out.print("Rotacionando a imagem em "+Math.toDegrees(alfa)+ " graus\n");
+    	
+    	
+       	at.rotate(-(alfa), x, y);
+       	System.out.println("Transladando o ponto ("+(int)x+"; "+(int)y+") para a origem");
+       	System.out.print("Rotacionando a imagem em "+Math.toDegrees(-alfa)+ " graus\n");
        	System.out.println("Transladando o ponto (0, 0) para a ("+(int)x+"; "+(int)y+")\n");
        	
        	BufferedImage rimage = new BufferedImage(this.image.getWidth(), this.image.getHeight(), BufferedImage.TYPE_3BYTE_BGR); 
@@ -73,14 +77,22 @@ public class GImage {
     
     public void roda(double alfa, double alfa2, double x, double y){
     	// o angulo 'alfa' e 'alfa2' é passado em radianos
+    	// negativo para girar no sentido anti-horario
+    	
     	AffineTransform at = new AffineTransform();
     	
-    	BufferedImage rimage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+    	BufferedImage rimage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);    	
     	
-       	at.rotate(alfa, x, y);
+       	at.rotate(-(alfa), x, y); 
+       	System.out.println("Transladando o ponto ("+(int)x+"; "+(int)y+") para a origem");
+       	System.out.print("Rotacionando a imagem em "+Math.toDegrees(-alfa)+ " graus\n");
+       	System.out.println("Transladando o ponto (0, 0) para a ("+(int)x+"; "+(int)y+")\n");
        	
-       	double sh = Math.sin(alfa2);
+        double sh = Math.sin(-(alfa2));
        	
+    	//double sh = Math.sin(10);
+    	
+    	System.out.println("Aplicando a distorção linear em X com valor: " +sh);      	
        	at.shear(sh, 0);
        	
     	AffineTransformOp afo = new AffineTransformOp(at,AffineTransformOp.TYPE_BILINEAR);  // TYPE_NEAREST_NEIGHBOR
@@ -126,8 +138,8 @@ public class GImage {
     		image.setRGB(x, y, 0);
     }
 
-    public void conv(Kernel k){
-    	System.out.println("Convolucionando a imagem \n");
+    public void conv(Kernel k, String nomeKernel){
+    	System.out.println("Convolucionando a imagem usando o kernel " + nomeKernel + "\n");
     	BufferedImage rimage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
     	
     	ConvolveOp COp = new ConvolveOp(k);

@@ -45,7 +45,7 @@ public abstract class Histograma {
     public static int[] getHistY(GImage imagem, Color c, int ini, int fim){
     	// cor funciona como filtro, para selecionar uma cor
     	
-    	int[] y = new int[imagem.getImagem().getHeight()];
+    	int[] y = new int[imagem.height];
     	Color cor;
     	int r, g, b;
     	
@@ -75,11 +75,11 @@ public abstract class Histograma {
     	return y; 
     }
 
-    public static int getPosMax(int v[]){
+    public static int[] getPosMax(int v[]){
     	return getPosMax(v, 0, v.length);
     }
     
-    public static int getPosMax(int v[], int ini, int fim){
+    public static int[] getPosMax(int v[], int ini, int fim){
     	double vd[] = new double [v.length];
     	
     	for(int i = 0; i < v.length; i++)
@@ -88,11 +88,11 @@ public abstract class Histograma {
     	return getPosMax(vd, ini, fim);
     }
    
-    public static int getPosMax(double v[]){
+    public static int[] getPosMax(double v[]){
     	return getPosMax(v, 0, v.length);
     }
     
-    public static int getPosMax(double v[], int ini, int fim){
+    public static int[] getPosMax(double v[], int ini, int fim){
         double max = 0.0; // recebe o maior valor armazenado no vetor v[]
         int iMaior = 0; // recebe a posicao do vetor v[] com maior valor
         
@@ -108,7 +108,12 @@ public abstract class Histograma {
         		iMaior = i;
         	}
         
-    	return iMaior; // retorna a posicao do maior valor armazenado no vetor v[]
+        int[] resultado = new int[2];
+        
+        resultado[0] = (int)max;
+        resultado[1] = iMaior;
+        
+    	return resultado; // retorna o valor e a posicao DO maior valor armazenado no vetor v[]
     }    
     
 

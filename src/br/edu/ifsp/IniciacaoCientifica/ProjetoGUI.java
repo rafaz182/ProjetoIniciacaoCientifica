@@ -46,7 +46,7 @@ public class ProjetoGUI extends JFrame {
 		
 		private JButton btnProcessa; // inicia o processamento de somente 1 imagem (a selecionada no JList)
 		
-		private JButton btnProcessTodos; // inicia o processamento d todas imagens do JList
+		private JButton btnProcessTodos; // inicia o processamento d todas imagens do JList		
 		
 		private JScrollPane scrollList;
 		
