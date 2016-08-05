@@ -60,7 +60,7 @@ public class GImage {
     	
     	
        	at.rotate(-(alfa), x, y);
-       	System.out.println("Transladando o ponto ("+(int)x+"; "+(int)y+") para a origem");
+       	System.out.println("Transladando o ponto ("+(int)x+"; "+(int)y+") para a (0, 0)");
        	System.out.print("Rotacionando a imagem em "+Math.toDegrees(-alfa)+ " graus\n");
        	System.out.println("Transladando o ponto (0, 0) para a ("+(int)x+"; "+(int)y+")\n");
        	
@@ -75,7 +75,7 @@ public class GImage {
     	height = image.getHeight();
     }
     
-    public void roda(double alfa, double alfa2, double x, double y){
+    public void roda(double alfa, double alfa2, double x, double y, char eixo){
     	// o angulo 'alfa' e 'alfa2' é passado em radianos
     	// negativo para girar no sentido anti-horario
     	
@@ -92,8 +92,11 @@ public class GImage {
        	
     	//double sh = Math.sin(10);
     	
-    	System.out.println("Aplicando a distorção linear em X com valor: " +sh);      	
-       	at.shear(sh, 0);
+    	System.out.println("Aplicando a distorção linear em "+eixo+" com valor: " +sh);
+    	if(eixo == 'x')
+    		at.shear(sh, 0);
+    	else
+    		at.shear(0, sh);
        	
     	AffineTransformOp afo = new AffineTransformOp(at,AffineTransformOp.TYPE_BILINEAR);  // TYPE_NEAREST_NEIGHBOR
     	afo.filter(image, rimage);
