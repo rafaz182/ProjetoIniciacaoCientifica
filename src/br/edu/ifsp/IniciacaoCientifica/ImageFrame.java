@@ -74,12 +74,12 @@ public class ImageFrame extends JFrame{
 	
 	public void alinhaPaisagem(GImage img){
 		// Valores que definem a janela na linha ymaior
-		final double PORCENTAGEM_MAIOR_H = 0.3;
-		final double PORCENTAGEM_MENOR_H = 0.002;
+		final double PORCENTAGEM_COMPRIMENTO_H = 0.3;
+		final double PORCENTAGEM_ALTURA_H = 0.008;
 		
 		// Valores que definem a janela na coluna xmaior
-		final double PORCENTAGEM_MAIOR_V = 0.3;
-		final double PORCENTAGEM_MENOR_V = 0.0015;
+		final double PORCENTAGEM_ALTURA_V = 0.3;
+		final double PORCENTAGEM_COMPRIMENTO_V = 0.0044;
 		
 		//Janela que delimita a pesquisa do ymaior e xmaior
 		double xmin, ymin, xmax, ymax;
@@ -105,10 +105,10 @@ public class ImageFrame extends JFrame{
 		double teta1;
 		if(yMaiorTop[0] > yMaiorBottom[0]){
 			yMaior = yMaiorTop[1];
-			teta1 = getTetaX(imgConvTop, imgConvTop.width/2, yMaior, (int)(imgConvTop.width*PORCENTAGEM_MAIOR_H), (int)(imgConvTop.height*PORCENTAGEM_MENOR_H));
+			teta1 = getTetaX(imgConvTop, imgConvTop.width/2, yMaior, (int)(imgConvTop.width*PORCENTAGEM_COMPRIMENTO_H), (int)(imgConvTop.height*PORCENTAGEM_ALTURA_H));
 		}else{
 			yMaior = yMaiorBottom[1];
-			teta1 = getTetaX(imgConvBottom, imgConvBottom.width/2, yMaior, (int)(imgConvBottom.width*PORCENTAGEM_MAIOR_H), (int)(imgConvBottom.height*PORCENTAGEM_MENOR_H));
+			teta1 = getTetaX(imgConvBottom, imgConvBottom.width/2, yMaior, (int)(imgConvBottom.width*PORCENTAGEM_COMPRIMENTO_H), (int)(imgConvBottom.height*PORCENTAGEM_ALTURA_H));
 		}		
 		
 		//______________________________________
@@ -134,11 +134,11 @@ public class ImageFrame extends JFrame{
 		if(xMaiorDireita[0] > xMaiorEsquerda[0]){
 			xMaior = xMaiorDireita[1];
 			teta2 = getTetaY(imgConvDireita, xMaior, imgConvDireita.height/2, 
-						(int)(imgConvDireita.width*PORCENTAGEM_MENOR_V), (int)(imgConvDireita.height*PORCENTAGEM_MAIOR_V));
+						(int)(imgConvDireita.width*PORCENTAGEM_COMPRIMENTO_V), (int)(imgConvDireita.height*PORCENTAGEM_ALTURA_V));
 		}else{
 			xMaior = xMaiorEsquerda[1];
 			teta2 = getTetaY(imgConvEsquerda, xMaior, imgConvEsquerda.height/2, 
-						(int)(imgConvEsquerda.width*PORCENTAGEM_MENOR_V), (int)(imgConvEsquerda.height*PORCENTAGEM_MAIOR_V));
+						(int)(imgConvEsquerda.width*PORCENTAGEM_COMPRIMENTO_V), (int)(imgConvEsquerda.height*PORCENTAGEM_ALTURA_V));
 		}		
 		
 		//______________________________________
@@ -148,24 +148,26 @@ public class ImageFrame extends JFrame{
 		
 		//______________________________________
 		
-		img.pintaQuadrado((imgConvTop.width/2) - (image.width*PORCENTAGEM_MAIOR_H), yMaior -  (image.height*PORCENTAGEM_MENOR_H), 
-				(int)(image.width*PORCENTAGEM_MAIOR_H)*2, (int)(image.height*PORCENTAGEM_MENOR_H)*2);
+		img.pintaQuadrado((imgConvTop.width/2) - (image.width*PORCENTAGEM_COMPRIMENTO_H), yMaior -  (image.height*PORCENTAGEM_ALTURA_H), 
+				(int)(image.width*PORCENTAGEM_COMPRIMENTO_H)*2, (int)(image.height*PORCENTAGEM_ALTURA_H)*2);
 		
-		img.pintaQuadrado(xMaior - (image.width*PORCENTAGEM_MENOR_V), img.height/2 - (image.height*PORCENTAGEM_MAIOR_V), 
-				(image.width*PORCENTAGEM_MENOR_V)*2, (image.height*PORCENTAGEM_MAIOR_V)*2);
+		img.pintaQuadrado(xMaior - (image.width*PORCENTAGEM_COMPRIMENTO_V), img.height/2 - (image.height*PORCENTAGEM_ALTURA_V), 
+				(image.width*PORCENTAGEM_COMPRIMENTO_V)*2, (image.height*PORCENTAGEM_ALTURA_V)*2);
 		
-		img.pintaLinhaY(yMaior);
-		img.pintaLinhaX(xMaior);
+		img.pintaLinhaY(yMaiorTop[1], Color.BLUE.getRGB());
+		img.pintaLinhaY(yMaiorBottom[1], Color.RED.getRGB());
+		img.pintaLinhaX(xMaiorEsquerda[1], Color.GREEN.getRGB());
+		img.pintaLinhaX(xMaiorDireita[1], Color.YELLOW.getRGB());		
 		img.pintaQuadrado(xmin, ymin, xmax-xmin, ymax-ymin);
 	}
 	
 	public void alinhaRetrato(GImage img){
 		
-		final double PORCENTAGEM_MAIOR_H = 0.30;
-		final double PORCENTAGEM_MENOR_H = 0.0014;
+		final double PORCENTAGEM_COMPRIMENTO_H = 0.30;
+		final double PORCENTAGEM_ALTURA_H = 0.0034;
 		
-		final double PORCENTAGEM_MAIOR_V = 0.30;
-		final double PORCENTAGEM_MENOR_V = 0.0015;
+		final double PORCENTAGEM_ALTURA_V = 0.30;
+		final double PORCENTAGEM_COMPRIMENTO_V = 0.0055;
 		
 		double xmin, ymin, xmax, ymax;
 		
@@ -191,13 +193,13 @@ public class ImageFrame extends JFrame{
 		if (xMaiorDireita[0] > xMaiorEsquerda[0]) {
 			xMaior = xMaiorDireita[1];
 			teta1 = getTetaY(imgConvDireita, xMaior, imgConvDireita.height / 2,
-					(int) (imgConvDireita.width * PORCENTAGEM_MENOR_V),
-					(int) (imgConvDireita.height * PORCENTAGEM_MAIOR_V));
+					(int) (imgConvDireita.width * PORCENTAGEM_COMPRIMENTO_V),
+					(int) (imgConvDireita.height * PORCENTAGEM_ALTURA_V));
 		} else {
 			xMaior = xMaiorEsquerda[1];
 			teta1 = getTetaY(imgConvEsquerda, xMaior, imgConvEsquerda.height / 2,
-					(int) (imgConvEsquerda.width * PORCENTAGEM_MENOR_V),
-					(int) (imgConvEsquerda.height * PORCENTAGEM_MAIOR_V));
+					(int) (imgConvEsquerda.width * PORCENTAGEM_COMPRIMENTO_V),
+					(int) (imgConvEsquerda.height * PORCENTAGEM_ALTURA_V));
 		}
 		
 		//______________________________________
@@ -223,11 +225,11 @@ public class ImageFrame extends JFrame{
 		if(yMaiorTop[0] > yMaiorBottom[0]){
 			yMaior = yMaiorTop[1];
 			teta2 = getTetaX(imgConvTop, imgConvTop.width/2, yMaior, 
-					(int)(imgConvTop.width*PORCENTAGEM_MAIOR_H), (int)(imgConvTop.height*PORCENTAGEM_MENOR_H));
+					(int)(imgConvTop.width*PORCENTAGEM_COMPRIMENTO_H), (int)(imgConvTop.height*PORCENTAGEM_ALTURA_H));
 		}else{
 			yMaior = yMaiorBottom[1];
 			teta2 = getTetaX(imgConvBottom, imgConvBottom.width/2, yMaior, 
-					(int)(imgConvBottom.width*PORCENTAGEM_MAIOR_H), (int)(imgConvBottom.height*PORCENTAGEM_MENOR_H));
+					(int)(imgConvBottom.width*PORCENTAGEM_COMPRIMENTO_H), (int)(imgConvBottom.height*PORCENTAGEM_ALTURA_H));
 		}	
 		
 		//______________________________________
@@ -237,14 +239,16 @@ public class ImageFrame extends JFrame{
 		
 		//______________________________________
 		
-		img.pintaQuadrado((imgConvTop.width/2) - (image.width*PORCENTAGEM_MAIOR_H), yMaior -  (image.height*PORCENTAGEM_MENOR_H), 
-				(int)(image.width*PORCENTAGEM_MAIOR_H)*2, (int)(image.height*PORCENTAGEM_MENOR_H)*2);
+		img.pintaQuadrado((imgConvTop.width/2) - (image.width*PORCENTAGEM_COMPRIMENTO_H), yMaior -  (image.height*PORCENTAGEM_ALTURA_H), 
+				(int)(image.width*PORCENTAGEM_COMPRIMENTO_H)*2, (int)(image.height*PORCENTAGEM_ALTURA_H)*2);
 		
-		img.pintaQuadrado(xMaior - (image.width*PORCENTAGEM_MENOR_V), img.height/2 - (image.height*PORCENTAGEM_MAIOR_V), 
-				(image.width*PORCENTAGEM_MENOR_V)*2, (image.height*PORCENTAGEM_MAIOR_V)*2);
+		img.pintaQuadrado(xMaior - (image.width*PORCENTAGEM_COMPRIMENTO_V), img.height/2 - (image.height*PORCENTAGEM_ALTURA_V), 
+				(image.width*PORCENTAGEM_COMPRIMENTO_V)*2, (image.height*PORCENTAGEM_ALTURA_V)*2);
 		
-		img.pintaLinhaY(yMaior);
-		img.pintaLinhaX(xMaior);
+		img.pintaLinhaY(yMaiorTop[1], Color.BLUE.getRGB());
+		img.pintaLinhaY(yMaiorBottom[1], Color.RED.getRGB());
+		img.pintaLinhaX(xMaiorEsquerda[1], Color.GREEN.getRGB());
+		img.pintaLinhaX(xMaiorDireita[1], Color.YELLOW.getRGB());
 		img.pintaQuadrado(xmin, ymin, xmax-xmin, ymax-ymin);
 	}
 	
@@ -360,7 +364,7 @@ public class ImageFrame extends JFrame{
 				
 		teta = Math.toDegrees(Math.atan(constantes[1]));
 		
-		System.out.println("O angulo teta1 em graus é " + teta);
+		System.out.println("O angulo TetaX em graus é " + teta);
 		System.out.println("");
 		
 		return teta;
@@ -428,7 +432,7 @@ public class ImageFrame extends JFrame{
 		
 		teta = Math.toDegrees(Math.atan(constantes[1]));
 		
-		System.out.println("O angulo teta2 em graus é " + teta);
+		System.out.println("O angulo TetaY em graus é " + teta);
 		System.out.println("");
 		
 		return teta;

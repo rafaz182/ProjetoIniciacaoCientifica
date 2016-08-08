@@ -84,7 +84,7 @@ public class GImage {
     	BufferedImage rimage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);    	
     	
        	at.rotate(-(alfa), x, y); 
-       	System.out.println("Transladando o ponto ("+(int)x+"; "+(int)y+") para a origem");
+       	System.out.println("Transladando o ponto ("+(int)x+"; "+(int)y+") para (0, 0)");
        	System.out.print("Rotacionando a imagem em "+Math.toDegrees(-alfa)+ " graus\n");
        	System.out.println("Transladando o ponto (0, 0) para a ("+(int)x+"; "+(int)y+")\n");
        	
@@ -183,29 +183,24 @@ public class GImage {
     	
     }
 
-    public void pintaLinhaY(int y){
-    	pintaLinhaY(1, y, width-2);
+    public void pintaLinhaY(int y, int cor){
+    	pintaLinhaY(1, y, width-2, cor);
     }
     
-    public void pintaLinhaY(int x, int y, int l){
-    	//Varia a largura (X) linha VERMELHA
-    	int c = 0xFFFF0000;
+    public void pintaLinhaY(int x, int y, int l, int cor){    	    	
     	
     	for(int i = x; i < x+l; i++)
-    		image.setRGB(i, y, c);
+    		image.setRGB(i, y, cor);
     }
     
-    public void pintaLinhaX(int x){
-    	pintaLinhaX(x, 1, height-2);
+    public void pintaLinhaX(int x, int cor){
+    	pintaLinhaX(x, 1, height-2, cor);
     }
     
-    public void pintaLinhaX(int x, int y, int h){
-    	//Varia a altura (Y) linha VERDE
-    	
-    	int c = 0x00FF00;
+    public void pintaLinhaX(int x, int y, int h, int cor){    
     	
     	for(int i = y; i < y+h; i++)
-    		image.setRGB(x, i, c);
+    		image.setRGB(x, i, cor);
     }
     
     public static double[] minQuadradoPolinomial(double[] x, double[] y, int order){
