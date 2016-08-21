@@ -6,6 +6,10 @@ import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -13,14 +17,27 @@ import org.apache.commons.math3.linear.RealMatrix;
 public class GImage {
 	
 	private BufferedImage image;
+	private String nomeFile;
+	private String nomeKerne;
 	public int width, height;
 	private int xRight, xLeft, yTop, yBottom; // coordenada dos limites do documento
 	
-	public GImage(BufferedImage img){
-		image = img;
+	public GImage(File img) throws IOException{
+		nomeFile = img.getName();
+		
+		image = ImageIO.read(img);
 		width = image.getWidth();
     	height = image.getHeight();
 	}
+	
+	public GImage(BufferedImage im, String nomeFile){
+	    	image = im;
+	    	
+	    	this.nomeFile = nomeFile;
+	    	
+	    	width = image.getWidth();
+	        height = image.getHeight();	        
+	    }
 	
 	public BufferedImage getImagem() {
 		return image;
@@ -83,12 +100,12 @@ public class GImage {
     	
     	BufferedImage rimage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);    	
     	
-       	at.rotate(-(alfa), x, y); 
+       	at.rotate((alfa), image.getWidth()/2, image.getHeight()/2); 
        	System.out.println("Transladando o ponto ("+(int)x+"; "+(int)y+") para (0, 0)");
        	System.out.print("Rotacionando a imagem em "+Math.toDegrees(-alfa)+ " graus\n");
        	System.out.println("Transladando o ponto (0, 0) para a ("+(int)x+"; "+(int)y+")\n");
        	
-        double sh = Math.sin(-(alfa2));
+        double sh = Math.sin((alfa2));
        	
     	//double sh = Math.sin(10);
     	
@@ -134,6 +151,14 @@ public class GImage {
     	return corMediaPonto;
     }
 
+	public String getNomeFile(){
+		return this.nomeFile;
+	}
+	
+	public String getNomeKernel(){
+		return this.nomeKerne;
+	}
+	
     public void setGray(int x, int y, boolean chave){    	
     	if(chave)
     		image.setRGB(x, y, 0xffffff);
@@ -148,6 +173,8 @@ public class GImage {
     	ConvolveOp COp = new ConvolveOp(k);
     	
     	COp.filter(image, rimage);
+    	
+    	this.nomeKerne = nomeKernel;
     	
     	image = rimage;   
     	
@@ -242,7 +269,9 @@ public class GImage {
 
     	cp.setData(si.getData());
     	
-    	return new GImage(cp);
+    	String nomeFile = this.nomeFile;
+    	
+    	return new GImage(cp, nomeFile);
     } 
     
 }

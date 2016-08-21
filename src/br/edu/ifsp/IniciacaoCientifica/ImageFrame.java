@@ -31,8 +31,7 @@ public class ImageFrame extends JFrame{
 		setLayout(new BorderLayout());	
 		setTitle(img.getName());
 				
-		image = new GImage(ImageIO.read(img));
-		
+		image = new GImage(img);		
 				
 		processaImg();
 		
@@ -53,23 +52,74 @@ public class ImageFrame extends JFrame{
 		System.out.println("_________INICIO DO PROCESSAMENTO["+counter+"]___________");
 		System.out.println("arquivo: "+ this.getTitle()+"\n");
 		
-		double r = 1024./Math.min(image.height, image.width);	 // define razão
+		double r = 400./Math.min(image.height, image.width);	 // define razão
 		
 		if(r != 1.)
 			image.reduz(r);
 		
 		System.out.println("Largura:"+image.width+", Altura:"+image.height+"\n");	
 		
-		if(image.width > image.height)
+		/*if(image.width > image.height)
 			alinhaPaisagem(image);
 		else
-			alinhaRetrato(image);
+			alinhaRetrato(image);*/
+		
+		int[][] limitFolha = detectaFolha(image);
+		
+		image.pintaQuadrado(limitFolha[0][0], limitFolha[0][1], limitFolha[1][0] - limitFolha[0][0], limitFolha[1][1] - limitFolha[0][1]);
 		
 		
 		long tempoFinal1 = System.currentTimeMillis(); 
 		System.out.println("tempo total = " + ((tempoFinal1 - tempoInicial1)/100) + " segundos");
 		System.out.println("_________FIM DO PROCESSAMENTO["+counter+"]___________\n\n");
 		counter++;
+	}
+	
+	public int[][] detectaFolha(GImage img){
+		int[][] coordenada = new int[2][2];
+		
+		double xmin, ymin, xmax, ymax;
+		
+		xmin = img.width*(5./17.); // retrato
+		ymin = img.height*(7./19.);
+		xmax = img.width*(12./17.);
+		ymax = img.height*(12./19.);
+		
+		GImage imgConvEsquerda = img.copia();
+		imgConvEsquerda.conv(leKernel(new File("kernels\\bordaEsquerda7x7.txt")), "bordaEsquerda7x7.txt");
+		int[] xMaiorEsquerda;
+		xMaiorEsquerda = getMaxX(imgConvEsquerda, 0, 0, xmin, imgConvEsquerda.height);
+		
+		//new ExibeImagem(imgConvEsquerda);
+		
+		GImage imgConvTop = img.copia(); 		
+		imgConvTop.conv(leKernel(new File("kernels\\bordaTop7x7.txt")), "bordaTop7x7.txt");					
+		int[] yMaiorTop; // recebe o maior valor e a linha de maior valor entre (0, 0) até (imgConvTop.width, ymin) // 0 = valor; 1 = posição	
+		yMaiorTop = getMaxY(imgConvTop, 0, 0, imgConvTop.width, ymin);	
+		
+		//new ExibeImagem(imgConvTop);
+			
+		coordenada[0][0] = xMaiorEsquerda[1];
+		coordenada[0][1] = yMaiorTop[1];
+		
+		GImage imgConvDireita = img.copia();
+		imgConvDireita.conv(leKernel(new File("kernels\\bordaDireita7x7.txt")), "bordaDireita7x7.txt");
+		int[] xMaiorDireita;
+		xMaiorDireita = getMaxX(imgConvDireita, xmax, 0, imgConvDireita.width, imgConvDireita.height);	
+		
+		//new ExibeImagem(imgConvDireita);
+		
+		GImage imgConvBottom = img.copia();		
+		imgConvBottom.conv(leKernel(new File("kernels\\bordaBottom7x7.txt")), "bordaBottom7x7.txt");		
+		int[] yMaiorBottom; // recebe o maior valor e a linha de maior valor entre (0, ymax) até (imgConvBottom.width, imgConvBottom.height) // 0 = valor; 1 = posição		
+		yMaiorBottom = getMaxY(imgConvBottom, 0, ymax, imgConvBottom.width, imgConvBottom.height);
+		
+		new ExibeImagem(imgConvBottom);
+		
+		coordenada[1][0] = xMaiorDireita[1];
+		coordenada[1][1] = yMaiorBottom[1];
+		
+		return coordenada;
 	}
 	
 	public void alinhaPaisagem(GImage img){
@@ -89,7 +139,7 @@ public class ImageFrame extends JFrame{
 		xmax = img.width*(15./19.);
 		ymax = img.height*(15./17.);
 		
-		//______________________________________
+		//______________________________________ O primeiro angulo é definido com base na maior linha (no caso, a horizontal)
 		
 		GImage imgConvTop = img.copia(); 		
 		imgConvTop.conv(leKernel(new File("kernels\\bordaTop.txt")), "bordaTop.txt");					
@@ -176,7 +226,7 @@ public class ImageFrame extends JFrame{
 		xmax = img.width*(15./17.);
 		ymax = img.height*(15./19.);
 		
-		//______________________________________
+		//______________________________________ O primeiro angulo é definido com base na maior linha (no caso, a vertical)
 		
 		GImage imgConvEsquerda = img.copia();
 		imgConvEsquerda.conv(leKernel(new File("kernels\\bordaEsquerda.txt")), "bordaEsquerda.txt");
@@ -245,11 +295,11 @@ public class ImageFrame extends JFrame{
 		img.pintaQuadrado(xMaior - (image.width*PORCENTAGEM_COMPRIMENTO_V), img.height/2 - (image.height*PORCENTAGEM_ALTURA_V), 
 				(image.width*PORCENTAGEM_COMPRIMENTO_V)*2, (image.height*PORCENTAGEM_ALTURA_V)*2);
 		
-		img.pintaLinhaY(yMaiorTop[1], Color.BLUE.getRGB());
+		/*img.pintaLinhaY(yMaiorTop[1], Color.BLUE.getRGB());
 		img.pintaLinhaY(yMaiorBottom[1], Color.RED.getRGB());
 		img.pintaLinhaX(xMaiorEsquerda[1], Color.GREEN.getRGB());
 		img.pintaLinhaX(xMaiorDireita[1], Color.YELLOW.getRGB());
-		img.pintaQuadrado(xmin, ymin, xmax-xmin, ymax-ymin);
+		//img.pintaQuadrado(xmin, ymin, xmax-xmin, ymax-ymin);*/
 	}
 	
 	public int[] getMaxY(GImage img, double x, double y, double dx, double dy){
