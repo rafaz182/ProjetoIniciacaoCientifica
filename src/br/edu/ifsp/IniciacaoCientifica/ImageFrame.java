@@ -41,9 +41,9 @@ public class ImageFrame extends JFrame{
 		
 		add(new JScrollPane(imgLabel), BorderLayout.CENTER);
 				
-		setSize(image.getImagem().getWidth()+30, image.getImagem().getHeight()+30);		
+		setSize(image.getImagem().getWidth()-30, image.getImagem().getHeight()-30);		
 		setVisible(true);
-		setResizable(false);		
+		setResizable(true);		
 	}
 	
 	public void processaImg(){
@@ -59,15 +59,15 @@ public class ImageFrame extends JFrame{
 		
 		System.out.println("Largura:"+image.width+", Altura:"+image.height+"\n");	
 		
-		/*if(image.width > image.height)
+		if(image.width > image.height)
 			alinhaPaisagem(image);
 		else
-			alinhaRetrato(image);*/
+			alinhaRetrato(image);
 		
-		int[][] limitFolha = detectaFolha(image);
+		/*int[][] limitFolha = detectaFolha(image);
 		
 		image.pintaQuadrado(limitFolha[0][0], limitFolha[0][1], limitFolha[1][0] - limitFolha[0][0], limitFolha[1][1] - limitFolha[0][1]);
-		
+		*/
 		
 		long tempoFinal1 = System.currentTimeMillis(); 
 		System.out.println("tempo total = " + ((tempoFinal1 - tempoInicial1)/100) + " segundos");
@@ -114,7 +114,7 @@ public class ImageFrame extends JFrame{
 		int[] yMaiorBottom; // recebe o maior valor e a linha de maior valor entre (0, ymax) até (imgConvBottom.width, imgConvBottom.height) // 0 = valor; 1 = posição		
 		yMaiorBottom = getMaxY(imgConvBottom, 0, ymax, imgConvBottom.width, imgConvBottom.height);
 		
-		new ExibeImagem(imgConvBottom);
+		//new ExibeImagem(imgConvBottom);
 		
 		coordenada[1][0] = xMaiorDireita[1];
 		coordenada[1][1] = yMaiorBottom[1];
@@ -221,23 +221,27 @@ public class ImageFrame extends JFrame{
 		
 		double xmin, ymin, xmax, ymax;
 		
-		xmin = img.width*(2./17.);
-		ymin = img.height*(4./19.);
-		xmax = img.width*(15./17.);
-		ymax = img.height*(15./19.);
+		xmin = img.width*(5./17.); // retrato
+		ymin = img.height*(7./19.);
+		xmax = img.width*(12./17.);
+		ymax = img.height*(12./19.);
 		
 		//______________________________________ O primeiro angulo é definido com base na maior linha (no caso, a vertical)
 		
 		GImage imgConvEsquerda = img.copia();
-		imgConvEsquerda.conv(leKernel(new File("kernels\\bordaEsquerda.txt")), "bordaEsquerda.txt");
+		imgConvEsquerda.conv(leKernel(new File("kernels\\bordaEsquerda7x7.txt")), "bordaEsquerda7x7.txt");
 		int[] xMaiorEsquerda;
 		xMaiorEsquerda = getMaxX(imgConvEsquerda, 0, 0, xmin, imgConvEsquerda.height);
+		
+		new ExibeImagem(imgConvEsquerda);
 
 		GImage imgConvDireita = img.copia();
-		imgConvDireita.conv(leKernel(new File("kernels\\bordaDireita.txt")), "bordaDireita.txt");
+		imgConvDireita.conv(leKernel(new File("kernels\\bordaDireita7x7.txt")), "bordaDireita7x7.txt");
 		int[] xMaiorDireita;
 		xMaiorDireita = getMaxX(imgConvDireita, xmax, 0, imgConvDireita.width, imgConvDireita.height);
 
+		new ExibeImagem(imgConvDireita);
+		
 		int xMaior; // recebe a coluna de maior valor entre xMaiorDireita e xMaiorEsquerda
 		double teta1;
 		if (xMaiorDireita[0] > xMaiorEsquerda[0]) {
@@ -252,6 +256,8 @@ public class ImageFrame extends JFrame{
 					(int) (imgConvEsquerda.height * PORCENTAGEM_ALTURA_V));
 		}
 		
+		//System.out.println("_________"+teta1+"___________");
+		
 		//______________________________________
 		
 		//GImage imgRoda = img.copia();
@@ -260,15 +266,25 @@ public class ImageFrame extends JFrame{
 				
 		//______________________________________
 		
-		GImage imgConvTop = img.copia(); 		
-		imgConvTop.conv(leKernel(new File("kernels\\bordaTop.txt")), "bordaTop.txt");					
+		GImage imgConvTop = img.copia(); 
+		if(teta1 != 0.0){
+			imgConvTop.roda(teta1, xMaior, imgConvTop.height/2);
+		}
+		imgConvTop.conv(leKernel(new File("kernels\\bordaTop7x7.txt")), "bordaTop7x7.txt");					
 		int[] yMaiorTop; // recebe o maior valor e a linha de maior valor entre (0, 0) até (imgConvTop.width, ymin) // 0 = valor; 1 = posição	
 		yMaiorTop = getMaxY(imgConvTop, 0, 0, imgConvTop.width, ymin);	
 		
-		GImage imgConvBottom = img.copia();		
-		imgConvBottom.conv(leKernel(new File("kernels\\bordaBottom.txt")), "bordaBottom.txt");		
+		new ExibeImagem(imgConvTop);
+		
+		GImage imgConvBottom = img.copia();	
+		if(teta1 != 0.0){
+			imgConvBottom.roda(teta1, xMaior, imgConvBottom.height/2);
+		}
+		imgConvBottom.conv(leKernel(new File("kernels\\bordaBottom7x7.txt")), "bordaBottom7x7.txt");		
 		int[] yMaiorBottom; // recebe o maior valor e a linha de maior valor entre (0, ymax) até (imgConvBottom.width, imgConvBottom.height) // 0 = valor; 1 = posição		
 		yMaiorBottom = getMaxY(imgConvBottom, 0, ymax, imgConvBottom.width, imgConvBottom.height);
+		
+		new ExibeImagem(imgConvBottom);
 		
 		int yMaior; // recebe a linha de maior valor entre yMaiorTop e yMaiorBottom		
 		double teta2;
@@ -285,7 +301,7 @@ public class ImageFrame extends JFrame{
 		//______________________________________
 		
 		if(teta1 != 0.0) 
-			img.roda(Math.toRadians(teta1), Math.toRadians(teta2), xMaior, yMaior,'y');	
+			img.roda(teta1, teta2, xMaior, yMaior,'y');	
 		
 		//______________________________________
 		
@@ -295,11 +311,11 @@ public class ImageFrame extends JFrame{
 		img.pintaQuadrado(xMaior - (image.width*PORCENTAGEM_COMPRIMENTO_V), img.height/2 - (image.height*PORCENTAGEM_ALTURA_V), 
 				(image.width*PORCENTAGEM_COMPRIMENTO_V)*2, (image.height*PORCENTAGEM_ALTURA_V)*2);
 		
-		/*img.pintaLinhaY(yMaiorTop[1], Color.BLUE.getRGB());
+		img.pintaLinhaY(yMaiorTop[1], Color.BLUE.getRGB());
 		img.pintaLinhaY(yMaiorBottom[1], Color.RED.getRGB());
 		img.pintaLinhaX(xMaiorEsquerda[1], Color.GREEN.getRGB());
 		img.pintaLinhaX(xMaiorDireita[1], Color.YELLOW.getRGB());
-		//img.pintaQuadrado(xmin, ymin, xmax-xmin, ymax-ymin);*/
+		img.pintaQuadrado(xmin, ymin, xmax-xmin, ymax-ymin);
 	}
 	
 	public int[] getMaxY(GImage img, double x, double y, double dx, double dy){
@@ -412,9 +428,9 @@ public class ImageFrame extends JFrame{
 		
 		constantes = GImage.minQuadradoPolinomial(X, Y, 1); // retorna as constantes da função reta y = a + bx
 				
-		teta = Math.toDegrees(Math.atan(constantes[1]));
+		teta = Math.atan(constantes[1]);
 		
-		System.out.println("O angulo TetaX em graus é " + teta);
+		System.out.println("O angulo TetaX em graus é " + Math.toDegrees(teta));
 		System.out.println("");
 		
 		return teta;
@@ -478,11 +494,11 @@ public class ImageFrame extends JFrame{
 		}		
 
 		
-		constantes= GImage.minQuadradoPolinomial(X,Y,1);
+		constantes = GImage.minQuadradoPolinomial(X,Y,1);
 		
-		teta = Math.toDegrees(Math.atan(constantes[1]));
+		teta = Math.atan(constantes[1]);
 		
-		System.out.println("O angulo TetaY em graus é " + teta);
+		System.out.println("O angulo TetaY em graus é " + Math.toDegrees(teta));
 		System.out.println("");
 		
 		return teta;

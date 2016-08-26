@@ -95,17 +95,18 @@ public class GImage {
     public void roda(double alfa, double alfa2, double x, double y, char eixo){
     	// o angulo 'alfa' e 'alfa2' é passado em radianos
     	// negativo para girar no sentido anti-horario
+    	// o parâmetro eixo é indica o eixo de maior dimensão
     	
     	AffineTransform at = new AffineTransform();
     	
     	BufferedImage rimage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);    	
     	
-       	at.rotate((alfa), image.getWidth()/2, image.getHeight()/2); 
+       	at.rotate(-(alfa), image.getWidth()/2, image.getHeight()/2); 
        	System.out.println("Transladando o ponto ("+(int)x+"; "+(int)y+") para (0, 0)");
        	System.out.print("Rotacionando a imagem em "+Math.toDegrees(-alfa)+ " graus\n");
        	System.out.println("Transladando o ponto (0, 0) para a ("+(int)x+"; "+(int)y+")\n");
        	
-        double sh = Math.sin((alfa2));
+        double sh = Math.sin(-(alfa2));
        	
     	//double sh = Math.sin(10);
     	
