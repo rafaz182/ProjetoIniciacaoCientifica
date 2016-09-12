@@ -19,8 +19,7 @@ public class GImage {
 	private BufferedImage image;
 	private String nomeFile;
 	private String nomeKerne;
-	public int width, height;
-	private int xRight, xLeft, yTop, yBottom; // coordenada dos limites do documento
+	public int width, height;	
 	
 	public GImage(File img) throws IOException{
 		nomeFile = img.getName();
@@ -64,27 +63,31 @@ public class GImage {
     	height = image.getHeight();
     }
 
-    public void roda(double alfa){
-    	roda(alfa,0,0);	
+    public void roda(double alfa, char eixo){
+    	roda(alfa, 0, 0, eixo);	
     }
     
-    public void roda(double alfa, double x, double y){
+    public void roda(double alfa, double x, double y, char eixo){
     	// o angulo 'alfa' é passado em radianos
-    	// negativo para girar no sentido anti-horario
+    	// negativo para girar no sentido anti-horario  
+    	// eixo = cateto adjacente do angulo alfa
     	
+    	AffineTransform at = new AffineTransform();     
+    	BufferedImage rimage = new BufferedImage(this.image.getWidth(), this.image.getHeight(), BufferedImage.TYPE_3BYTE_BGR); 
     	
-    	AffineTransform at = new AffineTransform(); 
-    	
-    	
-       	at.rotate(-(alfa), x, y);
-       	System.out.println("Transladando o ponto ("+(int)x+"; "+(int)y+") para a (0, 0)");
-       	System.out.print("Rotacionando a imagem em "+Math.toDegrees(-alfa)+ " graus\n");
-       	System.out.println("Transladando o ponto (0, 0) para a ("+(int)x+"; "+(int)y+")\n");
-       	
-       	BufferedImage rimage = new BufferedImage(this.image.getWidth(), this.image.getHeight(), BufferedImage.TYPE_3BYTE_BGR); 
-       	
+    	if(eixo == x){
+	       	at.rotate(-(alfa), x, y);
+	       	System.out.println("Transladando o ponto ("+(int)x+"; "+(int)y+") para a (0, 0)");
+	       	System.out.print("Rotacionando a imagem em "+Math.toDegrees(-alfa)+ " graus\n");
+	       	System.out.println("Transladando o ponto (0, 0) para a ("+(int)x+"; "+(int)y+")\n");
+    	}else{
+    		double sh = Math.sin(-(alfa));
+    		System.out.println("Aplicando a distorção linear em "+eixo+" com valor: " +sh);
+    		at.shear(sh, 0);
+    	}
+               	
     	AffineTransformOp afo = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);  // TYPE_NEAREST_NEIGHBOR
-     	afo.filter(image, rimage);
+     	afo.filter(image, rimage);     	
      	
     	image = rimage;     
     	
@@ -97,26 +100,31 @@ public class GImage {
     	// negativo para girar no sentido anti-horario
     	// o parâmetro eixo é indica o eixo de maior dimensão
     	
-    	AffineTransform at = new AffineTransform();
+    	AffineTransform at = new AffineTransform();    	
+    	BufferedImage rimage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);  
     	
-    	BufferedImage rimage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);    	
     	
-       	at.rotate(-(alfa), image.getWidth()/2, image.getHeight()/2); 
-       	System.out.println("Transladando o ponto ("+(int)x+"; "+(int)y+") para (0, 0)");
-       	System.out.print("Rotacionando a imagem em "+Math.toDegrees(-alfa)+ " graus\n");
-       	System.out.println("Transladando o ponto (0, 0) para a ("+(int)x+"; "+(int)y+")\n");
+    	if(eixo == x){
+	       	at.rotate(-(alfa), x, y); 
+	       	System.out.println("Transladando o ponto ("+(int)x+"; "+(int)y+") para (0, 0)");
+	       	System.out.print("Rotacionando a imagem em "+Math.toDegrees(-alfa)+ " graus\n");
+	       	System.out.println("Transladando o ponto (0, 0) para a ("+(int)x+"; "+(int)y+")\n");
+	       	
+	        double sh = Math.sin(-(alfa2));	        
+	        System.out.println("Aplicando a distorção linear em "+eixo+" com valor: " +sh);
+	    	at.shear(0, sh);
+    	}else{
+    		double sh = Math.sin(-(alfa));
+    		System.out.println("Aplicando a distorção linear em "+eixo+" com valor: " +sh);
+    		at.shear(sh, 0); //valor em y estável, pontos se movem em x
+    		
+    		at.rotate(-(alfa2), x, y); 
+	       	System.out.println("Transladando o ponto ("+(int)x+"; "+(int)y+") para (0, 0)");
+	       	System.out.print("Rotacionando a imagem em "+Math.toDegrees(-alfa2)+ " graus\n");
+	       	System.out.println("Transladando o ponto (0, 0) para a ("+(int)x+"; "+(int)y+")\n");
+    	}
        	
-        double sh = Math.sin(-(alfa2));
-       	
-    	//double sh = Math.sin(10);
-    	
-    	System.out.println("Aplicando a distorção linear em "+eixo+" com valor: " +sh);
-    	if(eixo == 'x')
-    		at.shear(sh, 0);
-    	else
-    		at.shear(0, sh);
-       	
-    	AffineTransformOp afo = new AffineTransformOp(at,AffineTransformOp.TYPE_BILINEAR);  // TYPE_NEAREST_NEIGHBOR
+    	AffineTransformOp afo = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);  // TYPE_NEAREST_NEIGHBOR
     	afo.filter(image, rimage);
     	
     	image = rimage;
@@ -151,11 +159,11 @@ public class GImage {
     	
     	return corMediaPonto;
     }
-
+	
 	public String getNomeFile(){
 		return this.nomeFile;
 	}
-	
+		
 	public String getNomeKernel(){
 		return this.nomeKerne;
 	}
@@ -230,6 +238,94 @@ public class GImage {
     	for(int i = y; i < y+h; i++)
     		image.setRGB(x, i, cor);
     }
+    
+    public static double[] ajustaBiParabolica(double[] x, double[] y, double[] f){
+		// f(x, y) = a0 + a1*x + a2*y
+		/*
+		 * 
+		 Create a real matrix with two rows and three columns, using a factory
+		method that selects the implementation class for us.
+			double[][] matrixData = { {1d,2d,3d}, {2d,5d,3d}};
+			RealMatrix m = MatrixUtils.createRealMatrix(matrixData);
+			
+		 One more with three rows, two columns, this time instantiating the
+		RealMatrix implementation class directly.
+			double[][] matrixData2 = { {1d,2d}, {2d,5d}, {1d, 7d}};
+			RealMatrix n = new Array2DRowRealMatrix(matrixData2);
+		 */
+		
+		double[] constantes = new double[5]; //a0, a1, a2, a3, a4
+		double[][] matriz = new double[x.length][5]; // abscissa.length tem que ser 9
+		
+		for(int i = 0; i < x.length; i++){
+			matriz[i][0] = 1;
+			matriz[i][1] = x[i];
+			matriz[i][2] = y[i];
+			matriz[i][3] = x[i] * x[i];
+			matriz[i][4] = y[i] * y[i];
+		}
+		
+		RealMatrix matrizX = MatrixUtils.createRealMatrix(matriz); // conjunto de derivadas por cada constante (a0, a1, a2)
+		
+		RealMatrix matrizXTransposta = matrizX.transpose();
+		
+		RealMatrix multXTX = matrizXTransposta.multiply(matrizX);
+		
+		RealMatrix MXTXI = MatrixUtils.inverse(multXTX);
+		
+		RealMatrix vetorTreshold = MatrixUtils.createColumnRealMatrix(f);
+		
+		RealMatrix matrizXTVetorY = matrizXTransposta.multiply(vetorTreshold);
+		
+		RealMatrix conjuntoConstantes = MXTXI.multiply(matrizXTVetorY);
+		
+		constantes = conjuntoConstantes.getColumn(0);
+		
+		return constantes;
+	}
+    
+    public static double[] ajustaPlano(double[] x, double[] y, double[] f){
+		// f(x, y) = a0 + a1*x + a2*y
+		/*
+		 * 
+		 Create a real matrix with two rows and three columns, using a factory
+		method that selects the implementation class for us.
+			double[][] matrixData = { {1d,2d,3d}, {2d,5d,3d}};
+			RealMatrix m = MatrixUtils.createRealMatrix(matrixData);
+			
+		 One more with three rows, two columns, this time instantiating the
+		RealMatrix implementation class directly.
+			double[][] matrixData2 = { {1d,2d}, {2d,5d}, {1d, 7d}};
+			RealMatrix n = new Array2DRowRealMatrix(matrixData2);
+		 */
+		
+		double[] constantes = new double[3]; //a0, a1, a2 
+		double[][] matriz = new double[x.length][3]; // abscissa.length tem que ser 9
+		
+		for(int i = 0; i < x.length; i++){
+			matriz[i][0] = 1;
+			matriz[i][1] = x[i];
+			matriz[i][2] = y[i];
+		}
+		
+		RealMatrix matrizX = MatrixUtils.createRealMatrix(matriz); // conjunto de derivadas por cada constante (a0, a1, a2)
+		
+		RealMatrix matrizXTransposta = matrizX.transpose();
+		
+		RealMatrix multXTX = matrizXTransposta.multiply(matrizX);
+		
+		RealMatrix MXTXI = MatrixUtils.inverse(multXTX);
+		
+		RealMatrix vetorTreshold = MatrixUtils.createColumnRealMatrix(f);
+		
+		RealMatrix matrizXTVetorY = matrizXTransposta.multiply(vetorTreshold);
+		
+		RealMatrix conjuntoConstantes = MXTXI.multiply(matrizXTVetorY);
+		
+		constantes = conjuntoConstantes.getColumn(0);
+		
+		return constantes;
+	}
     
     public static double[] minQuadradoPolinomial(double[] x, double[] y, int order){
     	System.out.println("Calculando o Qui-Quadrado de ordem " +(order+1));

@@ -41,7 +41,7 @@ public class ImageFrame extends JFrame{
 		
 		add(new JScrollPane(imgLabel), BorderLayout.CENTER);
 				
-		setSize(image.getImagem().getWidth()-30, image.getImagem().getHeight()-30);		
+		setSize(image.getImagem().getWidth()+30, image.getImagem().getHeight()+30);		
 		setVisible(true);
 		setResizable(true);		
 	}
@@ -59,20 +59,178 @@ public class ImageFrame extends JFrame{
 		
 		System.out.println("Largura:"+image.width+", Altura:"+image.height+"\n");	
 		
+		new ExibeImagem(image);
+		
 		if(image.width > image.height)
 			alinhaPaisagem(image);
 		else
 			alinhaRetrato(image);
 		
-		/*int[][] limitFolha = detectaFolha(image);
+		int[][] limitFolha = detectaFolha(image);
 		
-		image.pintaQuadrado(limitFolha[0][0], limitFolha[0][1], limitFolha[1][0] - limitFolha[0][0], limitFolha[1][1] - limitFolha[0][1]);
-		*/
+		//image.pintaQuadrado(limitFolha[0][0], limitFolha[0][1], limitFolha[1][0] - limitFolha[0][0], limitFolha[1][1] - limitFolha[0][1]);
+		
+		int[][][] mapaFolhaDividida = divideFolha(limitFolha);
+		
+		//for(int k = 0; k < 9; k++){
+			//image.pintaQuadrado(mapaFolhaDividida[k][0][0], mapaFolhaDividida[k][0][1], (mapaFolhaDividida[k][1][0]-mapaFolhaDividida[k][0][0]),
+					//(mapaFolhaDividida[k][1][1]-mapaFolhaDividida[k][0][1]));
+		//}
+		
+		double[] discriminadorPuro = new double[9];
+		
+		double bias = -0.82;
+		
+		double[] vetorX = new double[9];
+		double[] vetorY = new double[9];
+		
+		for(int k = 0; k < 9; k++){
+			discriminadorPuro[k] = calcThresholdNiblackTechnique(image, mapaFolhaDividida[k][0][0], mapaFolhaDividida[k][0][1], 
+					(mapaFolhaDividida[k][1][0]-mapaFolhaDividida[k][0][0]), (mapaFolhaDividida[k][1][1]-mapaFolhaDividida[k][0][1]), bias);
+			
+			vetorX[k] = (mapaFolhaDividida[k][0][0] + mapaFolhaDividida[k][1][0]) / 2;
+			vetorY[k] = (mapaFolhaDividida[k][0][1] + mapaFolhaDividida[k][1][1]) / 2;
+		}
+		
+		//double[] parametros = GImage.ajustaPlano(vetorX, vetorY, discriminadorPuro);
+		
+		double[] parametros = GImage.ajustaBiParabolica(vetorX, vetorY, discriminadorPuro);
+		
+		//aplicaThreshold(image, mapaFolhaDividida, discriminadorPuro);
+		
+		//aplicaThresholdPlano(image, limitFolha[0][0], limitFolha[0][1], limitFolha[1][0], limitFolha[1][1], parametros);
+		
+		aplicaThresholdBiParabolica(image, limitFolha[0][0], limitFolha[0][1], limitFolha[1][0], limitFolha[1][1], parametros);
 		
 		long tempoFinal1 = System.currentTimeMillis(); 
 		System.out.println("tempo total = " + ((tempoFinal1 - tempoInicial1)/100) + " segundos");
 		System.out.println("_________FIM DO PROCESSAMENTO["+counter+"]___________\n\n");
 		counter++;
+	}
+
+	public void aplicaThresholdBiParabolica(GImage img, int xIni, int yIni, int xFim, int yFim, double[] params){
+		double discriminador = 0;
+		
+		for(int i = xIni; i < xFim; i++){
+			for(int j = yIni; j < yFim; j++){
+				discriminador = params[0] + (params[1] * i) + (params[2] * j) + (params[3] * (i * i)) + (params[4] * (j * j));
+				int cinza = img.getGray(i, j);
+				
+				if(cinza > discriminador)
+					img.setGray(i, j, true);
+				else
+					img.setGray(i, j, false);
+			}
+		}
+	}
+	
+	public void aplicaThresholdPlano(GImage img, int xIni, int yIni, int xFim, int yFim, double[] params){
+		double discriminador = 0;
+		
+		for(int i = xIni; i < xFim; i++){
+			for(int j = yIni; j < yFim; j++){
+				discriminador = params[0] + (params[1] * i) + (params[2] * j);
+				int cinza = img.getGray(i, j);
+				
+				if(cinza > discriminador)
+					img.setGray(i, j, true);
+				else
+					img.setGray(i, j, false);
+			}
+		}
+	}
+	
+	public void aplicaThreshold(GImage img, int[][][] gapQuadrados, double[] discriminador){
+		for(int k = 0; k < 9; k++){
+			int x = gapQuadrados[k][0][0];
+			int y = gapQuadrados[k][0][1];
+			int l = gapQuadrados[k][1][0] - gapQuadrados[k][0][0];
+			int h = gapQuadrados[k][1][1] - gapQuadrados[k][0][1];
+			
+			for(int j = y; j < (y+h); j++){
+				for(int i = x; i < (x+l); i++){
+					int cinza = img.getGray(i, j);
+					if(cinza > discriminador[k])
+						img.setGray(i, j, true);
+					else
+						img.setGray(i, j, false);
+				}
+			}
+		}
+		
+	}
+	
+	public double calcThresholdNiblackTechnique(GImage img, int x, int y, int l, int h, double bias){
+		double threshold = 0;
+		double media = 0;
+		int N = 0;
+		double desvio = 0;
+
+		int[] histogramaCor = new int[256];
+		
+		for(int a = 0; a < 256; a++)
+			histogramaCor[a] = 0;
+		
+		for(int i = x; i < (x+l); i++){
+			for(int j = y; j < (y+h); j++){
+				histogramaCor[img.getGray(i, j)]++;
+				media += img.getGray(i, j);
+				N++;
+			}
+		}
+		
+		media /= N;
+	
+		
+		for(int i = x; i < (x+l); i++){
+			for(int j = y; j < (y+h); j++){
+				desvio += (img.getGray(i, j)-media) * (img.getGray(i, j)-media);
+			}
+		}
+		
+		desvio = Math.sqrt((desvio/N));
+		
+		threshold = media + (bias*desvio);	
+				
+		return threshold;
+	}
+	
+	public int[][][] divideFolha(int[][] limitFolha){
+		
+		int[][][] mapaFolhaDividida = new int[9][2][2];
+		
+		int dx = limitFolha[1][0] - limitFolha[0][0]; 
+		int dy = limitFolha[1][1] - limitFolha[0][1];
+		
+		System.out.println("Dividindo a folha em 9 partes.");
+		
+		int k = 0;
+		for(int j = 0; j < 3; j++){
+			for(int i = 0; i < 3; i++){
+				mapaFolhaDividida[k][0][0] = limitFolha[0][0] + ((int)(dx* (i/3.)));
+				mapaFolhaDividida[k][1][0] = limitFolha[0][0] + ((int)(dx* ((i+1)/3.))); 
+				
+				mapaFolhaDividida[k][0][1] = limitFolha[0][1] + ((int)(dy* (j/3.)));
+				mapaFolhaDividida[k][1][1] = limitFolha[0][1] + ((int)(dy* ((j+1)/3.)));
+				
+				k++;
+				
+				System.out.println("Quadrado "+k+": de ("
+						+(limitFolha[0][0] + ((int)(dx* (i/3.))))+
+						", "
+						+(limitFolha[0][1] + ((int)(dy* (j/3.))))+
+						") até ("
+						+(limitFolha[0][0] + ((int)(dx* ((i+1)/3.))))+
+						", "
+						+(limitFolha[0][1] + ((int)(dy* ((j+1)/3.))))+
+						")"
+						);
+			}
+		}		
+		
+		System.out.println("");
+		
+		return mapaFolhaDividida;
 	}
 	
 	public int[][] detectaFolha(GImage img){
@@ -80,22 +238,24 @@ public class ImageFrame extends JFrame{
 		
 		double xmin, ymin, xmax, ymax;
 		
-		xmin = img.width*(5./17.); // retrato
-		ymin = img.height*(7./19.);
-		xmax = img.width*(12./17.);
-		ymax = img.height*(12./19.);
+		xmin = img.width*(4./19.); // retrato
+		ymin = img.height*(6./23.);
+		xmax = img.width*(15./19.);
+		ymax = img.height*(17./23.);
+		
+		int gap = 10;
 		
 		GImage imgConvEsquerda = img.copia();
 		imgConvEsquerda.conv(leKernel(new File("kernels\\bordaEsquerda7x7.txt")), "bordaEsquerda7x7.txt");
 		int[] xMaiorEsquerda;
-		xMaiorEsquerda = getMaxX(imgConvEsquerda, 0, 0, xmin, imgConvEsquerda.height);
+		xMaiorEsquerda = getMaxX(imgConvEsquerda, gap, gap, xmin, imgConvEsquerda.height-gap);
 		
 		//new ExibeImagem(imgConvEsquerda);
 		
 		GImage imgConvTop = img.copia(); 		
 		imgConvTop.conv(leKernel(new File("kernels\\bordaTop7x7.txt")), "bordaTop7x7.txt");					
 		int[] yMaiorTop; // recebe o maior valor e a linha de maior valor entre (0, 0) até (imgConvTop.width, ymin) // 0 = valor; 1 = posição	
-		yMaiorTop = getMaxY(imgConvTop, 0, 0, imgConvTop.width, ymin);	
+		yMaiorTop = getMaxY(imgConvTop, gap, gap, imgConvTop.width-gap, ymin);	
 		
 		//new ExibeImagem(imgConvTop);
 			
@@ -105,19 +265,21 @@ public class ImageFrame extends JFrame{
 		GImage imgConvDireita = img.copia();
 		imgConvDireita.conv(leKernel(new File("kernels\\bordaDireita7x7.txt")), "bordaDireita7x7.txt");
 		int[] xMaiorDireita;
-		xMaiorDireita = getMaxX(imgConvDireita, xmax, 0, imgConvDireita.width, imgConvDireita.height);	
+		xMaiorDireita = getMaxX(imgConvDireita, xmax, gap, imgConvDireita.width-gap, imgConvDireita.height-gap);	
 		
 		//new ExibeImagem(imgConvDireita);
 		
 		GImage imgConvBottom = img.copia();		
 		imgConvBottom.conv(leKernel(new File("kernels\\bordaBottom7x7.txt")), "bordaBottom7x7.txt");		
 		int[] yMaiorBottom; // recebe o maior valor e a linha de maior valor entre (0, ymax) até (imgConvBottom.width, imgConvBottom.height) // 0 = valor; 1 = posição		
-		yMaiorBottom = getMaxY(imgConvBottom, 0, ymax, imgConvBottom.width, imgConvBottom.height);
+		yMaiorBottom = getMaxY(imgConvBottom, gap, ymax, imgConvBottom.width-gap, imgConvBottom.height-gap);
 		
 		//new ExibeImagem(imgConvBottom);
 		
 		coordenada[1][0] = xMaiorDireita[1];
 		coordenada[1][1] = yMaiorBottom[1];
+		
+		System.out.println("A folha tem inicio nas coordenadas ("+coordenada[0][0]+", "+coordenada[0][1]+") até ("+coordenada[1][0]+", "+coordenada[1][1]+").\n");
 		
 		return coordenada;
 	}
@@ -214,17 +376,19 @@ public class ImageFrame extends JFrame{
 	public void alinhaRetrato(GImage img){
 		
 		final double PORCENTAGEM_COMPRIMENTO_H = 0.30;
-		final double PORCENTAGEM_ALTURA_H = 0.0034;
+		final double PORCENTAGEM_ALTURA_H = 0.0040;
 		
-		final double PORCENTAGEM_ALTURA_V = 0.30;
-		final double PORCENTAGEM_COMPRIMENTO_V = 0.0055;
+		final double PORCENTAGEM_ALTURA_V = 0.24;
+		final double PORCENTAGEM_COMPRIMENTO_V = 0.0060;
 		
 		double xmin, ymin, xmax, ymax;
 		
-		xmin = img.width*(5./17.); // retrato
-		ymin = img.height*(7./19.);
-		xmax = img.width*(12./17.);
-		ymax = img.height*(12./19.);
+		char eixo = 'y';
+		
+		xmin = img.width*(4./19.); // retrato
+		ymin = img.height*(6./23.);
+		xmax = img.width*(15./19.);
+		ymax = img.height*(17./23.);
 		
 		//______________________________________ O primeiro angulo é definido com base na maior linha (no caso, a vertical)
 		
@@ -233,58 +397,50 @@ public class ImageFrame extends JFrame{
 		int[] xMaiorEsquerda;
 		xMaiorEsquerda = getMaxX(imgConvEsquerda, 0, 0, xmin, imgConvEsquerda.height);
 		
-		new ExibeImagem(imgConvEsquerda);
+		//new ExibeImagem(imgConvEsquerda);
 
 		GImage imgConvDireita = img.copia();
 		imgConvDireita.conv(leKernel(new File("kernels\\bordaDireita7x7.txt")), "bordaDireita7x7.txt");
 		int[] xMaiorDireita;
 		xMaiorDireita = getMaxX(imgConvDireita, xmax, 0, imgConvDireita.width, imgConvDireita.height);
 
-		new ExibeImagem(imgConvDireita);
+		//new ExibeImagem(imgConvDireita);
 		
 		int xMaior; // recebe a coluna de maior valor entre xMaiorDireita e xMaiorEsquerda
 		double teta1;
-		if (xMaiorDireita[0] > xMaiorEsquerda[0]) {
+		if(xMaiorDireita[0] > xMaiorEsquerda[0]){
 			xMaior = xMaiorDireita[1];
 			teta1 = getTetaY(imgConvDireita, xMaior, imgConvDireita.height / 2,
 					(int) (imgConvDireita.width * PORCENTAGEM_COMPRIMENTO_V),
 					(int) (imgConvDireita.height * PORCENTAGEM_ALTURA_V));
-		} else {
+		}else{
 			xMaior = xMaiorEsquerda[1];
 			teta1 = getTetaY(imgConvEsquerda, xMaior, imgConvEsquerda.height / 2,
 					(int) (imgConvEsquerda.width * PORCENTAGEM_COMPRIMENTO_V),
 					(int) (imgConvEsquerda.height * PORCENTAGEM_ALTURA_V));
 		}
 		
-		//System.out.println("_________"+teta1+"___________");
-		
-		//______________________________________
-		
-		//GImage imgRoda = img.copia();
-		//if (teta1 != 0.0) 
-		//	img.roda(Math.toRadians(teta1), img.height/2, yMaior);
-				
 		//______________________________________
 		
 		GImage imgConvTop = img.copia(); 
 		if(teta1 != 0.0){
-			imgConvTop.roda(teta1, xMaior, imgConvTop.height/2);
+			imgConvTop.roda(teta1, eixo);
 		}
 		imgConvTop.conv(leKernel(new File("kernels\\bordaTop7x7.txt")), "bordaTop7x7.txt");					
 		int[] yMaiorTop; // recebe o maior valor e a linha de maior valor entre (0, 0) até (imgConvTop.width, ymin) // 0 = valor; 1 = posição	
-		yMaiorTop = getMaxY(imgConvTop, 0, 0, imgConvTop.width, ymin);	
+		yMaiorTop = getMaxY(imgConvTop, 20, 20, imgConvTop.width-20, ymin);	
 		
-		new ExibeImagem(imgConvTop);
+		//new ExibeImagem(imgConvTop);
 		
 		GImage imgConvBottom = img.copia();	
 		if(teta1 != 0.0){
-			imgConvBottom.roda(teta1, xMaior, imgConvBottom.height/2);
+			imgConvBottom.roda(teta1, eixo);
 		}
 		imgConvBottom.conv(leKernel(new File("kernels\\bordaBottom7x7.txt")), "bordaBottom7x7.txt");		
 		int[] yMaiorBottom; // recebe o maior valor e a linha de maior valor entre (0, ymax) até (imgConvBottom.width, imgConvBottom.height) // 0 = valor; 1 = posição		
-		yMaiorBottom = getMaxY(imgConvBottom, 0, ymax, imgConvBottom.width, imgConvBottom.height);
+		yMaiorBottom = getMaxY(imgConvBottom, 20, ymax, imgConvBottom.width-20, imgConvBottom.height-20);
 		
-		new ExibeImagem(imgConvBottom);
+		//new ExibeImagem(imgConvBottom);
 		
 		int yMaior; // recebe a linha de maior valor entre yMaiorTop e yMaiorBottom		
 		double teta2;
@@ -301,11 +457,11 @@ public class ImageFrame extends JFrame{
 		//______________________________________
 		
 		if(teta1 != 0.0) 
-			img.roda(teta1, teta2, xMaior, yMaior,'y');	
+			img.roda(teta1, teta2, xMaior, yMaior, eixo);	
 		
 		//______________________________________
 		
-		img.pintaQuadrado((imgConvTop.width/2) - (image.width*PORCENTAGEM_COMPRIMENTO_H), yMaior -  (image.height*PORCENTAGEM_ALTURA_H), 
+		/*img.pintaQuadrado((imgConvTop.width/2) - (image.width*PORCENTAGEM_COMPRIMENTO_H), yMaior -  (image.height*PORCENTAGEM_ALTURA_H), 
 				(int)(image.width*PORCENTAGEM_COMPRIMENTO_H)*2, (int)(image.height*PORCENTAGEM_ALTURA_H)*2);
 		
 		img.pintaQuadrado(xMaior - (image.width*PORCENTAGEM_COMPRIMENTO_V), img.height/2 - (image.height*PORCENTAGEM_ALTURA_V), 
@@ -315,7 +471,7 @@ public class ImageFrame extends JFrame{
 		img.pintaLinhaY(yMaiorBottom[1], Color.RED.getRGB());
 		img.pintaLinhaX(xMaiorEsquerda[1], Color.GREEN.getRGB());
 		img.pintaLinhaX(xMaiorDireita[1], Color.YELLOW.getRGB());
-		img.pintaQuadrado(xmin, ymin, xmax-xmin, ymax-ymin);
+		img.pintaQuadrado(xmin, ymin, xmax-xmin, ymax-ymin);*/
 	}
 	
 	public int[] getMaxY(GImage img, double x, double y, double dx, double dy){
