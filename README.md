@@ -8,9 +8,9 @@ scanneados e cria uma função de plano e bi-paraboloidal que aplica um *thresho
 Os documentos serão scanneados por câmeras de *smartphones* e salvas no computador.
 
 ## Etapas
-- [ ] 1. Definir os requisitos funcionais do programa (*The system should be...*)
+- [X] 1. Definir os requisitos funcionais do programa (*The system should be...*)
 - Ler a(s) imagem(ns) selecionadas;
 - Redimensiona-la para uma escala menor;
 - Definir limites da imagem (bordas da folha sulfite);
 - Alinhar as bordas da imagem com o eixos da abscissa e ordenada;
-- [ ] 2. Criar a GUI do programa
+- [X] 2. Criar a GUI do programa
