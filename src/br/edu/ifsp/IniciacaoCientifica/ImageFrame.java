@@ -3,7 +3,10 @@ package br.edu.ifsp.IniciacaoCientifica;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.Kernel;
 import java.io.File;
 import java.io.FileReader;
@@ -12,18 +15,22 @@ import java.io.LineNumberReader;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
-
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 
-public class ImageFrame extends JFrame{
+public class ImageFrame extends JFrame implements ActionListener{
 	
 	private static int counter = 0;
 	
-	private GImage image;		
+	private GImage image;
+	
+	private JPanel barra;
+	
+	private JButton btnSalvar;
 	
 	//private JPanel panelImg;
 
@@ -39,6 +46,18 @@ public class ImageFrame extends JFrame{
 		
 		JLabel imgLabel = new JLabel(icon);
 		
+		barra = new JPanel();
+		
+		btnSalvar = new JButton("Salvar");
+		btnSalvar.addActionListener(this);
+		
+		barra.setLayout(new FlowLayout());
+		barra.setBounds(0, 0, image.getImagem().getWidth(), 75);
+		
+		barra.add(btnSalvar);
+		
+		add(barra, BorderLayout.NORTH);
+		
 		add(new JScrollPane(imgLabel), BorderLayout.CENTER);
 				
 		setSize(image.getImagem().getWidth()+30, image.getImagem().getHeight()+30);		
@@ -52,14 +71,14 @@ public class ImageFrame extends JFrame{
 		System.out.println("_________INICIO DO PROCESSAMENTO["+counter+"]___________");
 		System.out.println("arquivo: "+ this.getTitle()+"\n");
 		
-		double r = 400./Math.min(image.height, image.width);	 // define razão
+		/*double r = 1500./Math.min(image.height, image.width);	 // define razão
 		
 		if(r != 1.)
-			image.reduz(r);
+			image.reduz(r);*/
 		
 		System.out.println("Largura:"+image.width+", Altura:"+image.height+"\n");	
 		
-		new ExibeImagem(image);
+		//new ExibeImagem(image);
 		
 		if(image.width > image.height)
 			alinhaPaisagem(image);
@@ -70,21 +89,18 @@ public class ImageFrame extends JFrame{
 		
 		//image.pintaQuadrado(limitFolha[0][0], limitFolha[0][1], limitFolha[1][0] - limitFolha[0][0], limitFolha[1][1] - limitFolha[0][1]);
 		
-		int[][][] mapaFolhaDividida = divideFolha(limitFolha);
+		int divisoes = 81; // tem de ser um numero quadrado perfeito: 4, 9, 25, 36 ...
 		
-		//for(int k = 0; k < 9; k++){
-			//image.pintaQuadrado(mapaFolhaDividida[k][0][0], mapaFolhaDividida[k][0][1], (mapaFolhaDividida[k][1][0]-mapaFolhaDividida[k][0][0]),
-					//(mapaFolhaDividida[k][1][1]-mapaFolhaDividida[k][0][1]));
-		//}
+		int[][][] mapaFolhaDividida = divideFolha(limitFolha, divisoes);
 		
-		double[] discriminadorPuro = new double[9];
+		double[] discriminadorPuro = new double[divisoes];
 		
-		double bias = -0.82;
+		double bias = -1.2;
 		
-		double[] vetorX = new double[9];
-		double[] vetorY = new double[9];
+		double[] vetorX = new double[divisoes];
+		double[] vetorY = new double[divisoes];
 		
-		for(int k = 0; k < 9; k++){
+		for(int k = 0; k < divisoes; k++){
 			discriminadorPuro[k] = calcThresholdNiblackTechnique(image, mapaFolhaDividida[k][0][0], mapaFolhaDividida[k][0][1], 
 					(mapaFolhaDividida[k][1][0]-mapaFolhaDividida[k][0][0]), (mapaFolhaDividida[k][1][1]-mapaFolhaDividida[k][0][1]), bias);
 			
@@ -92,15 +108,24 @@ public class ImageFrame extends JFrame{
 			vetorY[k] = (mapaFolhaDividida[k][0][1] + mapaFolhaDividida[k][1][1]) / 2;
 		}
 		
+		GImage norm = image.copia();
+		
 		//double[] parametros = GImage.ajustaPlano(vetorX, vetorY, discriminadorPuro);
 		
 		double[] parametros = GImage.ajustaBiParabolica(vetorX, vetorY, discriminadorPuro);
 		
-		//aplicaThreshold(image, mapaFolhaDividida, discriminadorPuro);
+		aplicaThreshold(norm, mapaFolhaDividida, discriminadorPuro, divisoes);
 		
 		//aplicaThresholdPlano(image, limitFolha[0][0], limitFolha[0][1], limitFolha[1][0], limitFolha[1][1], parametros);
 		
 		aplicaThresholdBiParabolica(image, limitFolha[0][0], limitFolha[0][1], limitFolha[1][0], limitFolha[1][1], parametros);
+		
+		/*for(int k = 0; k < divisoes; k++){
+			image.pintaQuadrado(mapaFolhaDividida[k][0][0], mapaFolhaDividida[k][0][1], (mapaFolhaDividida[k][1][0]-mapaFolhaDividida[k][0][0]),
+					(mapaFolhaDividida[k][1][1]-mapaFolhaDividida[k][0][1]));
+		}*/
+		
+		new ExibeImagem(norm);
 		
 		long tempoFinal1 = System.currentTimeMillis(); 
 		System.out.println("tempo total = " + ((tempoFinal1 - tempoInicial1)/100) + " segundos");
@@ -140,8 +165,8 @@ public class ImageFrame extends JFrame{
 		}
 	}
 	
-	public void aplicaThreshold(GImage img, int[][][] gapQuadrados, double[] discriminador){
-		for(int k = 0; k < 9; k++){
+	public void aplicaThreshold(GImage img, int[][][] gapQuadrados, double[] discriminador, int divisoes){
+		for(int k = 0; k < divisoes; k++){
 			int x = gapQuadrados[k][0][0];
 			int y = gapQuadrados[k][0][1];
 			int l = gapQuadrados[k][1][0] - gapQuadrados[k][0][0];
@@ -159,6 +184,8 @@ public class ImageFrame extends JFrame{
 		}
 		
 	}
+	
+	//public aplicaThresholdGlobal(GImage img, int[][][] gapQuadrados, double discriminador)
 	
 	public double calcThresholdNiblackTechnique(GImage img, int x, int y, int l, int h, double bias){
 		double threshold = 0;
@@ -195,34 +222,37 @@ public class ImageFrame extends JFrame{
 		return threshold;
 	}
 	
-	public int[][][] divideFolha(int[][] limitFolha){
+	public int[][][] divideFolha(int[][] limitFolha, int divisoes){
 		
-		int[][][] mapaFolhaDividida = new int[9][2][2];
+		int[][][] mapaFolhaDividida = new int[divisoes][2][2];
 		
 		int dx = limitFolha[1][0] - limitFolha[0][0]; 
 		int dy = limitFolha[1][1] - limitFolha[0][1];
 		
-		System.out.println("Dividindo a folha em 9 partes.");
+		System.out.println("Dividindo a folha em "+divisoes+" partes.");
+		
+		double quad = (int) Math.sqrt(divisoes);
+		//System.out.println(quad);
 		
 		int k = 0;
-		for(int j = 0; j < 3; j++){
-			for(int i = 0; i < 3; i++){
-				mapaFolhaDividida[k][0][0] = limitFolha[0][0] + ((int)(dx* (i/3.)));
-				mapaFolhaDividida[k][1][0] = limitFolha[0][0] + ((int)(dx* ((i+1)/3.))); 
+		for(int j = 0; j < quad; j++){
+			for(int i = 0; i < quad; i++){
+				mapaFolhaDividida[k][0][0] = limitFolha[0][0] + ((int)(dx* (i/quad)));
+				mapaFolhaDividida[k][1][0] = limitFolha[0][0] + ((int)(dx* ((i+1)/quad))); 
 				
-				mapaFolhaDividida[k][0][1] = limitFolha[0][1] + ((int)(dy* (j/3.)));
-				mapaFolhaDividida[k][1][1] = limitFolha[0][1] + ((int)(dy* ((j+1)/3.)));
+				mapaFolhaDividida[k][0][1] = limitFolha[0][1] + ((int)(dy* (j/quad)));
+				mapaFolhaDividida[k][1][1] = limitFolha[0][1] + ((int)(dy* ((j+1)/quad)));
 				
 				k++;
 				
 				System.out.println("Quadrado "+k+": de ("
-						+(limitFolha[0][0] + ((int)(dx* (i/3.))))+
+						+(limitFolha[0][0] + ((int)(dx* (i/quad))))+
 						", "
-						+(limitFolha[0][1] + ((int)(dy* (j/3.))))+
+						+(limitFolha[0][1] + ((int)(dy* (j/quad))))+
 						") até ("
-						+(limitFolha[0][0] + ((int)(dx* ((i+1)/3.))))+
+						+(limitFolha[0][0] + ((int)(dx* ((i+1)/quad))))+
 						", "
-						+(limitFolha[0][1] + ((int)(dy* ((j+1)/3.))))+
+						+(limitFolha[0][1] + ((int)(dy* ((j+1)/quad))))+
 						")"
 						);
 			}
@@ -702,4 +732,18 @@ public class ImageFrame extends JFrame{
    		} 
 		return new Kernel(n, n, kk);
     }
+
+	@Override
+	public void actionPerformed(ActionEvent arg0) {
+		if(arg0.getSource() == btnSalvar){
+			File outputfile = new File(image.getNomeKernel()+image.getNomeFile()+"_IF_.JPG");
+			try {
+				ImageIO.write(image.getImagem(), "jpg", outputfile);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}		
+		
+	}
 }

@@ -25,7 +25,7 @@ public class ExibeImagem extends JFrame implements ActionListener{
 	
 	public ExibeImagem(GImage image){
 		setLayout(new BorderLayout());	
-		setTitle(image.getNomeFile());
+		setTitle("ExibeImagem_"+image.getNomeFile());
 		
 		this.image = image;
 		
@@ -54,7 +54,7 @@ public class ExibeImagem extends JFrame implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		if(arg0.getSource() == btnSalvar){
-			File outputfile = new File(image.getNomeKernel()+"_"+image.getNomeFile());
+			File outputfile = new File(image.getNomeKernel()+image.getNomeFile()+"_EI_.jpg");
 			try {
 				ImageIO.write(image.getImagem(), "jpg", outputfile);
 			} catch (IOException e) {
