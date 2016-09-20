@@ -71,10 +71,10 @@ public class ImageFrame extends JFrame implements ActionListener{
 		System.out.println("_________INICIO DO PROCESSAMENTO["+counter+"]___________");
 		System.out.println("arquivo: "+ this.getTitle()+"\n");
 		
-		/*double r = 1500./Math.min(image.height, image.width);	 // define razão
+		double r = 1024./Math.min(image.height, image.width);	 // define razão
 		
 		if(r != 1.)
-			image.reduz(r);*/
+			image.reduz(r);
 		
 		System.out.println("Largura:"+image.width+", Altura:"+image.height+"\n");	
 		
@@ -89,16 +89,20 @@ public class ImageFrame extends JFrame implements ActionListener{
 		
 		//image.pintaQuadrado(limitFolha[0][0], limitFolha[0][1], limitFolha[1][0] - limitFolha[0][0], limitFolha[1][1] - limitFolha[0][1]);
 		
-		int divisoes = 81; // tem de ser um numero quadrado perfeito: 4, 9, 25, 36 ...
+		int divisoes = 9; // tem de ser um numero quadrado perfeito: 4, 9, 25, 36 ...
 		
 		int[][][] mapaFolhaDividida = divideFolha(limitFolha, divisoes);
 		
 		double[] discriminadorPuro = new double[divisoes];
+		double discriGlobal;
 		
 		double bias = -1.2;
 		
 		double[] vetorX = new double[divisoes];
 		double[] vetorY = new double[divisoes];
+		
+		discriGlobal = calcThresholdNiblackTechnique(image, limitFolha[0][0],limitFolha[0][1], limitFolha[1][0] - limitFolha[0][0], 
+				limitFolha[1][1] - limitFolha[0][1], bias);
 		
 		for(int k = 0; k < divisoes; k++){
 			discriminadorPuro[k] = calcThresholdNiblackTechnique(image, mapaFolhaDividida[k][0][0], mapaFolhaDividida[k][0][1], 
@@ -114,16 +118,16 @@ public class ImageFrame extends JFrame implements ActionListener{
 		
 		double[] parametros = GImage.ajustaBiParabolica(vetorX, vetorY, discriminadorPuro);
 		
-		aplicaThreshold(norm, mapaFolhaDividida, discriminadorPuro, divisoes);
+		aplicaThresholdGlobal(norm, limitFolha, discriGlobal);
 		
 		//aplicaThresholdPlano(image, limitFolha[0][0], limitFolha[0][1], limitFolha[1][0], limitFolha[1][1], parametros);
 		
 		aplicaThresholdBiParabolica(image, limitFolha[0][0], limitFolha[0][1], limitFolha[1][0], limitFolha[1][1], parametros);
 		
-		/*for(int k = 0; k < divisoes; k++){
+		for(int k = 0; k < divisoes; k++){
 			image.pintaQuadrado(mapaFolhaDividida[k][0][0], mapaFolhaDividida[k][0][1], (mapaFolhaDividida[k][1][0]-mapaFolhaDividida[k][0][0]),
 					(mapaFolhaDividida[k][1][1]-mapaFolhaDividida[k][0][1]));
-		}*/
+		}
 		
 		new ExibeImagem(norm);
 		
@@ -185,7 +189,22 @@ public class ImageFrame extends JFrame implements ActionListener{
 		
 	}
 	
-	//public aplicaThresholdGlobal(GImage img, int[][][] gapQuadrados, double discriminador)
+	public void aplicaThresholdGlobal(GImage img, int[][] limitFolha, double discriminador){
+		int x = limitFolha[0][0];
+		int y = limitFolha[0][1];
+		int l = limitFolha[1][0] - limitFolha[0][0];
+		int h = limitFolha[1][1] - limitFolha[0][1];
+		
+		for(int j = y; j < (y+h); j++){
+			for(int i = x; i < (x+l); i++){
+				int cinza = img.getGray(i, j);
+				if(cinza > discriminador)
+					img.setGray(i, j, true);
+				else
+					img.setGray(i, j, false);
+			}
+		}
+	}
 	
 	public double calcThresholdNiblackTechnique(GImage img, int x, int y, int l, int h, double bias){
 		double threshold = 0;
