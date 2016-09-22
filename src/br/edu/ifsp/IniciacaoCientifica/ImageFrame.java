@@ -71,10 +71,10 @@ public class ImageFrame extends JFrame implements ActionListener{
 		System.out.println("_________INICIO DO PROCESSAMENTO["+counter+"]___________");
 		System.out.println("arquivo: "+ this.getTitle()+"\n");
 		
-		double r = 1024./Math.min(image.height, image.width);	 // define razão
+		/*double r = 1024./Math.min(image.height, image.width);	 // define razão
 		
 		if(r != 1.)
-			image.reduz(r);
+			image.reduz(r);*/
 		
 		System.out.println("Largura:"+image.width+", Altura:"+image.height+"\n");	
 		
@@ -114,20 +114,20 @@ public class ImageFrame extends JFrame implements ActionListener{
 		
 		GImage norm = image.copia();
 		
-		//double[] parametros = GImage.ajustaPlano(vetorX, vetorY, discriminadorPuro);
+		double[] parametros = GImage.ajustaPlano(vetorX, vetorY, discriminadorPuro);
 		
-		double[] parametros = GImage.ajustaBiParabolica(vetorX, vetorY, discriminadorPuro);
+		//double[] parametros = GImage.ajustaBiParabolica(vetorX, vetorY, discriminadorPuro);
 		
 		aplicaThresholdGlobal(norm, limitFolha, discriGlobal);
 		
-		//aplicaThresholdPlano(image, limitFolha[0][0], limitFolha[0][1], limitFolha[1][0], limitFolha[1][1], parametros);
+		aplicaThresholdPlano(image, limitFolha, parametros);
 		
-		aplicaThresholdBiParabolica(image, limitFolha[0][0], limitFolha[0][1], limitFolha[1][0], limitFolha[1][1], parametros);
+		//aplicaThresholdBiParabolica(image, limitFolha, parametros);
 		
-		for(int k = 0; k < divisoes; k++){
+		/*for(int k = 0; k < divisoes; k++){
 			image.pintaQuadrado(mapaFolhaDividida[k][0][0], mapaFolhaDividida[k][0][1], (mapaFolhaDividida[k][1][0]-mapaFolhaDividida[k][0][0]),
 					(mapaFolhaDividida[k][1][1]-mapaFolhaDividida[k][0][1]));
-		}
+		}*/
 		
 		new ExibeImagem(norm);
 		
@@ -137,11 +137,17 @@ public class ImageFrame extends JFrame implements ActionListener{
 		counter++;
 	}
 
-	public void aplicaThresholdBiParabolica(GImage img, int xIni, int yIni, int xFim, int yFim, double[] params){
+	public void aplicaThresholdBiParabolica(GImage img, int[][] limitFolha, double[] params){
+		
+		int x = limitFolha[0][0];
+		int y = limitFolha[0][1];
+		int l = limitFolha[1][0] - limitFolha[0][0];
+		int h = limitFolha[1][1] - limitFolha[0][1];
+		
 		double discriminador = 0;
 		
-		for(int i = xIni; i < xFim; i++){
-			for(int j = yIni; j < yFim; j++){
+		for(int i = x; i < (x+l); i++){
+			for(int j = y; j < (y+h); j++){
 				discriminador = params[0] + (params[1] * i) + (params[2] * j) + (params[3] * (i * i)) + (params[4] * (j * j));
 				int cinza = img.getGray(i, j);
 				
@@ -153,11 +159,17 @@ public class ImageFrame extends JFrame implements ActionListener{
 		}
 	}
 	
-	public void aplicaThresholdPlano(GImage img, int xIni, int yIni, int xFim, int yFim, double[] params){
+	public void aplicaThresholdPlano(GImage img, int[][] limitFolha, double[] params){
+		
+		int x = limitFolha[0][0];
+		int y = limitFolha[0][1];
+		int l = limitFolha[1][0] - limitFolha[0][0];
+		int h = limitFolha[1][1] - limitFolha[0][1];
+		
 		double discriminador = 0;
 		
-		for(int i = xIni; i < xFim; i++){
-			for(int j = yIni; j < yFim; j++){
+		for(int i = x; i < (x+l); i++){
+			for(int j = y; j < (y+h); j++){
 				discriminador = params[0] + (params[1] * i) + (params[2] * j);
 				int cinza = img.getGray(i, j);
 				
@@ -250,7 +262,7 @@ public class ImageFrame extends JFrame implements ActionListener{
 		
 		System.out.println("Dividindo a folha em "+divisoes+" partes.");
 		
-		double quad = (int) Math.sqrt(divisoes);
+		double quad = Math.sqrt(divisoes);
 		//System.out.println(quad);
 		
 		int k = 0;
