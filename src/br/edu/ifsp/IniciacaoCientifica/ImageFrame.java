@@ -60,7 +60,8 @@ public class ImageFrame extends JFrame implements ActionListener{
 		
 		add(new JScrollPane(imgLabel), BorderLayout.CENTER);
 				
-		setSize(image.getImagem().getWidth()+30, image.getImagem().getHeight()+30);		
+		//setSize(image.getImagem().getWidth()+30, image.getImagem().getHeight()+30);		
+		setExtendedState(JFrame.MAXIMIZED_BOTH); 
 		setVisible(true);
 		setResizable(true);		
 	}
@@ -71,21 +72,35 @@ public class ImageFrame extends JFrame implements ActionListener{
 		System.out.println("_________INICIO DO PROCESSAMENTO["+counter+"]___________");
 		System.out.println("arquivo: "+ this.getTitle()+"\n");
 		
-		/*double r = 1024./Math.min(image.height, image.width);	 // define razão
+		System.out.println("Largura:"+image.width+", Altura:"+image.height+"\n");
 		
-		if(r != 1.)
-			image.reduz(r);*/
+		double fatorReducao = 200./Math.min(image.height, image.width);	 // define razão
 		
-		System.out.println("Largura:"+image.width+", Altura:"+image.height+"\n");	
+		GImage imgReduzida = image.copia();
+		
+		if(fatorReducao != 1.)
+			imgReduzida.reduz(fatorReducao);
+		
+		//System.out.println("Largura:"+image.width+", Altura:"+image.height+"\n");	
 		
 		//new ExibeImagem(image);
 		
-		if(image.width > image.height)
-			alinhaPaisagem(image);
+		double[] tetaXeY = new double[2];
+		if(imgReduzida.width > imgReduzida.height)
+			alinhaPaisagem(imgReduzida);
 		else
-			alinhaRetrato(image);
+			tetaXeY = alinhaRetrato(imgReduzida);
 		
-		int[][] limitFolha = detectaFolha(image);
+		int[][] limitFolha = detectaFolha(imgReduzida);
+		
+		double fatorAmpliacao = Math.min(image.height, image.width) / 200.;
+		
+		limitFolha[0][0] *= fatorAmpliacao;
+		limitFolha[0][1] *= fatorAmpliacao;
+		limitFolha[1][0] *= fatorAmpliacao;
+		limitFolha[1][1] *= fatorAmpliacao;
+		
+		image.roda(tetaXeY[1],  tetaXeY[0], image.width/2, image.height/2, 'y');
 		
 		//image.pintaQuadrado(limitFolha[0][0], limitFolha[0][1], limitFolha[1][0] - limitFolha[0][0], limitFolha[1][1] - limitFolha[0][1]);
 		
@@ -94,6 +109,7 @@ public class ImageFrame extends JFrame implements ActionListener{
 		int[][][] mapaFolhaDividida = divideFolha(limitFolha, divisoes);
 		
 		double[] discriminadorPuro = new double[divisoes];
+		
 		double discriGlobal;
 		
 		double bias = -1.2;
@@ -112,13 +128,13 @@ public class ImageFrame extends JFrame implements ActionListener{
 			vetorY[k] = (mapaFolhaDividida[k][0][1] + mapaFolhaDividida[k][1][1]) / 2;
 		}
 		
-		GImage norm = image.copia();
+		//GImage norm = image.copia();
 		
 		double[] parametros = GImage.ajustaPlano(vetorX, vetorY, discriminadorPuro);
 		
 		//double[] parametros = GImage.ajustaBiParabolica(vetorX, vetorY, discriminadorPuro);
 		
-		aplicaThresholdGlobal(norm, limitFolha, discriGlobal);
+		//aplicaThresholdGlobal(norm, limitFolha, discriGlobal);
 		
 		aplicaThresholdPlano(image, limitFolha, parametros);
 		
@@ -129,10 +145,10 @@ public class ImageFrame extends JFrame implements ActionListener{
 					(mapaFolhaDividida[k][1][1]-mapaFolhaDividida[k][0][1]));
 		}*/
 		
-		new ExibeImagem(norm);
+		//new ExibeImagem(norm);
 		
 		long tempoFinal1 = System.currentTimeMillis(); 
-		System.out.println("tempo total = " + ((tempoFinal1 - tempoInicial1)/100) + " segundos");
+		System.out.println("tempo total = " + (tempoFinal1 - tempoInicial1));
 		System.out.println("_________FIM DO PROCESSAMENTO["+counter+"]___________\n\n");
 		counter++;
 	}
@@ -340,12 +356,16 @@ public class ImageFrame extends JFrame implements ActionListener{
 		coordenada[1][0] = xMaiorDireita[1];
 		coordenada[1][1] = yMaiorBottom[1];
 		
-		System.out.println("A folha tem inicio nas coordenadas ("+coordenada[0][0]+", "+coordenada[0][1]+") até ("+coordenada[1][0]+", "+coordenada[1][1]+").\n");
+		//System.out.println("A folha tem inicio nas coordenadas ("+coordenada[0][0]+", "+coordenada[0][1]+") até ("+coordenada[1][0]+", "+coordenada[1][1]+").\n");
 		
 		return coordenada;
 	}
 	
 	public void alinhaPaisagem(GImage img){
+		/*
+		 * Esta função convoluciona o objeto img 4 vezes, cada vez para uma borda da folha (Top, Bottom, Direita, Esquerda)
+		 * Obtem os angulos TetaX e TetaY
+		 * */
 		// Valores que definem a janela na linha ymaior
 		final double PORCENTAGEM_COMPRIMENTO_H = 0.3;
 		final double PORCENTAGEM_ALTURA_H = 0.008;
@@ -434,7 +454,13 @@ public class ImageFrame extends JFrame implements ActionListener{
 		img.pintaQuadrado(xmin, ymin, xmax-xmin, ymax-ymin);
 	}
 	
-	public void alinhaRetrato(GImage img){
+	public double[] alinhaRetrato(GImage img){
+		/*
+		 * Esta função convoluciona o objeto img 4 vezes, cada vez para uma borda da folha (Top, Bottom, Direita, Esquerda)
+		 * Obtem os angulos TetaX e TetaY
+		 * */
+		
+		double[] tetaXeY = new double[2]; //tetaXeY[0] = tetaX; tetaXeY[1] = tetaY
 		
 		final double PORCENTAGEM_COMPRIMENTO_H = 0.30;
 		final double PORCENTAGEM_ALTURA_H = 0.0040;
@@ -468,15 +494,15 @@ public class ImageFrame extends JFrame implements ActionListener{
 		//new ExibeImagem(imgConvDireita);
 		
 		int xMaior; // recebe a coluna de maior valor entre xMaiorDireita e xMaiorEsquerda
-		double teta1;
+		double tetaY;
 		if(xMaiorDireita[0] > xMaiorEsquerda[0]){
 			xMaior = xMaiorDireita[1];
-			teta1 = getTetaY(imgConvDireita, xMaior, imgConvDireita.height / 2,
+			tetaY = getTetaY(imgConvDireita, xMaior, imgConvDireita.height / 2,
 					(int) (imgConvDireita.width * PORCENTAGEM_COMPRIMENTO_V),
 					(int) (imgConvDireita.height * PORCENTAGEM_ALTURA_V));
 		}else{
 			xMaior = xMaiorEsquerda[1];
-			teta1 = getTetaY(imgConvEsquerda, xMaior, imgConvEsquerda.height / 2,
+			tetaY = getTetaY(imgConvEsquerda, xMaior, imgConvEsquerda.height / 2,
 					(int) (imgConvEsquerda.width * PORCENTAGEM_COMPRIMENTO_V),
 					(int) (imgConvEsquerda.height * PORCENTAGEM_ALTURA_V));
 		}
@@ -484,9 +510,10 @@ public class ImageFrame extends JFrame implements ActionListener{
 		//______________________________________
 		
 		GImage imgConvTop = img.copia(); 
-		if(teta1 != 0.0){
-			imgConvTop.roda(teta1, eixo);
-		}
+		if(tetaY != 0.0){
+			imgConvTop.roda(tetaY, eixo);
+		}	
+		
 		imgConvTop.conv(leKernel(new File("kernels\\bordaTop7x7.txt")), "bordaTop7x7.txt");					
 		int[] yMaiorTop; // recebe o maior valor e a linha de maior valor entre (0, 0) até (imgConvTop.width, ymin) // 0 = valor; 1 = posição	
 		yMaiorTop = getMaxY(imgConvTop, 20, 20, imgConvTop.width-20, ymin);	
@@ -494,8 +521,8 @@ public class ImageFrame extends JFrame implements ActionListener{
 		//new ExibeImagem(imgConvTop);
 		
 		GImage imgConvBottom = img.copia();	
-		if(teta1 != 0.0){
-			imgConvBottom.roda(teta1, eixo);
+		if(tetaY != 0.0){
+			imgConvBottom.roda(tetaY, eixo);
 		}
 		imgConvBottom.conv(leKernel(new File("kernels\\bordaBottom7x7.txt")), "bordaBottom7x7.txt");		
 		int[] yMaiorBottom; // recebe o maior valor e a linha de maior valor entre (0, ymax) até (imgConvBottom.width, imgConvBottom.height) // 0 = valor; 1 = posição		
@@ -504,23 +531,28 @@ public class ImageFrame extends JFrame implements ActionListener{
 		//new ExibeImagem(imgConvBottom);
 		
 		int yMaior; // recebe a linha de maior valor entre yMaiorTop e yMaiorBottom		
-		double teta2;
+		double tetaX;
 		if(yMaiorTop[0] > yMaiorBottom[0]){
 			yMaior = yMaiorTop[1];
-			teta2 = getTetaX(imgConvTop, imgConvTop.width/2, yMaior, 
+			tetaX = getTetaX(imgConvTop, imgConvTop.width/2, yMaior, 
 					(int)(imgConvTop.width*PORCENTAGEM_COMPRIMENTO_H), (int)(imgConvTop.height*PORCENTAGEM_ALTURA_H));
 		}else{
 			yMaior = yMaiorBottom[1];
-			teta2 = getTetaX(imgConvBottom, imgConvBottom.width/2, yMaior, 
+			tetaX = getTetaX(imgConvBottom, imgConvBottom.width/2, yMaior, 
 					(int)(imgConvBottom.width*PORCENTAGEM_COMPRIMENTO_H), (int)(imgConvBottom.height*PORCENTAGEM_ALTURA_H));
 		}	
 		
 		//______________________________________
 		
-		if(teta1 != 0.0) 
-			img.roda(teta1, teta2, xMaior, yMaior, eixo);	
+		if(tetaY != 0.0) 
+			img.roda(tetaY, tetaX, xMaior, yMaior, eixo);	
 		
 		//______________________________________
+		
+		tetaXeY[0] = tetaX;
+		tetaXeY[1] = tetaY;
+		
+		return tetaXeY;
 		
 		/*img.pintaQuadrado((imgConvTop.width/2) - (image.width*PORCENTAGEM_COMPRIMENTO_H), yMaior -  (image.height*PORCENTAGEM_ALTURA_H), 
 				(int)(image.width*PORCENTAGEM_COMPRIMENTO_H)*2, (int)(image.height*PORCENTAGEM_ALTURA_H)*2);
@@ -612,7 +644,7 @@ public class ImageFrame extends JFrame implements ActionListener{
 		int k = 0;
 		int cor;
 		
-		disc = 30; //acima de 25 é branco, abaixo é preto
+		disc = 25; //acima de 25 é branco, abaixo é preto (necessita de revisão: 'pq 25 é escolhido?)
 		
 		System.out.println("Procurando valores acima de: "+disc+", na janela de ("+xmin+", "+ymin+") até ("+xmax+", "+ymax+")");
 		

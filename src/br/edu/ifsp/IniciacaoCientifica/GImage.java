@@ -42,20 +42,18 @@ public class GImage {
 		return image;
 	}
 	
-	public void reduz(double fat){    	
-		double f05 = 0.5; // Aplica uma reducao de 50%
+	public void reduz(double fat){
+		
+		System.out.println("Reduzindo a imagem para Largura: "+(int)(width*fat)+", Altura:"+(int)(height*fat)+"\n");
+		
     	int tipo = AffineTransformOp.TYPE_BILINEAR; //TYPE_NEAREST_NEIGHBOR  TYPE_BICUBIC TYPE_BILINEAR // interpolação dos pontos
-    	while (fat<0.5){
-    		fat = fat*2;
-    		BufferedImage rimage = new BufferedImage((int)(image.getWidth()*f05), (int)(image.getHeight()*f05), BufferedImage.TYPE_3BYTE_BGR);	//cria a malha bitmap
-    		AffineTransform at = AffineTransform.getScaleInstance(f05, f05); // cria matriz de redução
-    		AffineTransformOp afo = new AffineTransformOp(at, tipo);   // cria matriz homogenea de redução e interpolaçao
-    		rimage = afo.filter(image, rimage);	
-    		image = rimage;
-       	}
-    	BufferedImage rimage = new BufferedImage((int)(image.getWidth()*fat), (int)(image.getHeight()*fat), BufferedImage.TYPE_3BYTE_BGR);	
+    	
+    	BufferedImage rimage = new BufferedImage((int)(image.getWidth()*fat), (int)(image.getHeight()*fat), BufferedImage.TYPE_3BYTE_BGR);
+    	
     	AffineTransform at = AffineTransform.getScaleInstance(fat, fat);
+    	
     	AffineTransformOp afo = new AffineTransformOp(at, tipo);   
+    	
     	rimage = afo.filter(image, rimage);	
     	image = rimage;    	
     	
