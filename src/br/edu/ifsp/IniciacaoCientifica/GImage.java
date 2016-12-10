@@ -325,7 +325,7 @@ public class GImage {
 		return constantes;
 	}
     
-    public static double[] minQuadradoPolinomial(double[] x, double[] y, int order){
+    /*public static double[] minQuadradoPolinomial(double[] x, double[] y, int order){
     	System.out.println("Calculando o Qui-Quadrado de ordem " +(order+1));
     	double[][] X = new double[x.length][order + 1];
 		
@@ -350,6 +350,43 @@ public class GImage {
 		
 		System.out.println("");
 
+		return a;
+    }*/
+    
+    public static double[] minQuadradoPolinomial( double[] xi, double[] yi, int order ){
+		int n=order+1;
+    	double[][] x = new double[xi.length][n];
+		for( int i = 0; i < xi.length; i++ ){
+			//System.out.println(x[i]+";"+y[i]);
+			for( int k = 0; k < n; k++ ){
+				x[i][k] = Math.pow(xi[i], k);
+			}
+		}
+		RealMatrix X = MatrixUtils.createRealMatrix(x);
+		//System.out.println(X.toString());
+		RealMatrix Y = MatrixUtils.createColumnRealMatrix(yi);
+		//System.out.println(Y.toString());
+		RealMatrix Xt = X.transpose();
+		RealMatrix XtX = Xt.multiply(X);
+		//System.out.println(XtX.toString());
+		double[][] r = new double[n][n];
+		for(int i=0;i<n;i++){
+			for(int j=0;j<n;j++){
+				if(i==j)r[i][j]=1/Math.sqrt(XtX.getData()[i][j]);else r[i][j]=0;;
+			}
+		}
+		RealMatrix R=MatrixUtils.createRealMatrix(r);
+		RealMatrix RM=R.multiply(XtX);
+		RealMatrix Ml=RM.multiply(R);
+		//System.out.println(Ml.toString());
+		RealMatrix Mli=MatrixUtils.inverse(Ml);
+		RealMatrix RMli=R.multiply(Mli);
+		RealMatrix XtXi=RMli.multiply(R);
+		//System.out.println(XtXi.toString());
+		//RealMatrix XtXi = MatrixUtils.inverse(XtX);
+		RealMatrix XtY=Xt.multiply(Y);
+		RealMatrix A = XtXi.multiply(XtY);
+		double[] a = A.getColumn(0);
 		return a;
     }
     

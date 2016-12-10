@@ -130,15 +130,15 @@ public class ImageFrame extends JFrame implements ActionListener{
 		
 		//GImage norm = image.copia();
 		
-		double[] parametros = GImage.ajustaPlano(vetorX, vetorY, discriminadorPuro);
+		//double[] parametros = GImage.ajustaPlano(vetorX, vetorY, discriminadorPuro);
 		
-		//double[] parametros = GImage.ajustaBiParabolica(vetorX, vetorY, discriminadorPuro);
+		double[] parametros = GImage.ajustaBiParabolica(vetorX, vetorY, discriminadorPuro);
 		
 		//aplicaThresholdGlobal(norm, limitFolha, discriGlobal);
 		
-		aplicaThresholdPlano(image, limitFolha, parametros);
+		//aplicaThresholdPlano(image, limitFolha, parametros);
 		
-		//aplicaThresholdBiParabolica(image, limitFolha, parametros);
+		aplicaThresholdBiParabolica(image, limitFolha, parametros);
 		
 		/*for(int k = 0; k < divisoes; k++){
 			image.pintaQuadrado(mapaFolhaDividida[k][0][0], mapaFolhaDividida[k][0][1], (mapaFolhaDividida[k][1][0]-mapaFolhaDividida[k][0][0]),
